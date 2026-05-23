@@ -98,7 +98,10 @@ class _LandingScreenState extends State<LandingScreen>
           // child: Image.asset('assets/images/logo.png', fit: BoxFit.contain),
           //
           // ─────────────────────────────────────────────────────────────
-          child: const _LogoPlaceholder(),
+          child: Image.asset(
+            'assets/images/logo.png',
+            fit: BoxFit.contain,
+          ),
         ),
       ),
     );
@@ -110,11 +113,11 @@ class _LandingScreenState extends State<LandingScreen>
       RichText(
         textAlign: TextAlign.center,
         text: TextSpan(children: [
-          TextSpan('AA-',
+          TextSpan(text: 'AA-',
               style: GoogleFonts.poppins(
                   fontSize: 34, fontWeight: FontWeight.w800,
                   color: AppColors.pinkDark, letterSpacing: -0.5)),
-          TextSpan('PoDiTa',
+          TextSpan(text: 'PoDiTa',
               style: GoogleFonts.poppins(
                   fontSize: 34, fontWeight: FontWeight.w800,
                   color: AppColors.blueDark, letterSpacing: -0.5)),

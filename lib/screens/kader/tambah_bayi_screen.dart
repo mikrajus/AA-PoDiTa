@@ -15,8 +15,6 @@ class TambahBayiScreen extends StatefulWidget {
 class _TambahBayiScreenState extends State<TambahBayiScreen> {
   final _formKey = GlobalKey<FormState>();
   bool _isLoading = false;
-
-  // Controllers
   final _tglPemeriksaanCtrl = TextEditingController();
   final _namaBayiCtrl       = TextEditingController();
   final _tglLahirCtrl       = TextEditingController();
@@ -27,7 +25,6 @@ class _TambahBayiScreenState extends State<TambahBayiScreen> {
   final _pendidikanCtrl     = TextEditingController();
   final _pekerjaanCtrl      = TextEditingController();
   final _jumlahAnakCtrl     = TextEditingController();
-
   String _jenisKelamin = 'Laki-laki';
 
   @override
@@ -40,11 +37,12 @@ class _TambahBayiScreenState extends State<TambahBayiScreen> {
     super.dispose();
   }
 
-  Future<void> _pilihTanggal(TextEditingController ctrl) async {
+  Future<void> _pilihTanggal(TextEditingController ctrl,
+      {DateTime? firstDate}) async {
     final picked = await showDatePicker(
       context: context,
       initialDate: DateTime.now(),
-      firstDate: DateTime(2000),
+      firstDate: firstDate ?? DateTime(2000),
       lastDate: DateTime.now(),
       builder: (ctx, child) => Theme(
         data: Theme.of(ctx).copyWith(
@@ -79,22 +77,9 @@ class _TambahBayiScreenState extends State<TambahBayiScreen> {
       tanggalPemeriksaan: _tglPemeriksaanCtrl.text.trim(),
     );
 
-    // Hitung status awal
-    BayiService().updatePemeriksaan(
-      bayi.id,
-      tanggalPemeriksaan: bayi.tanggalPemeriksaan,
-      beratBadan: bayi.beratBadan,
-      tinggiBadan: bayi.tinggiBadan,
-    );
-    // Tambah dulu baru update
+    // Hitung status awal sebelum tambah
+    BayiService().hitungStatusAwal(bayi);
     BayiService().tambahBayi(bayi);
-    // Update status
-    BayiService().updatePemeriksaan(
-      bayi.id,
-      tanggalPemeriksaan: bayi.tanggalPemeriksaan,
-      beratBadan: bayi.beratBadan,
-      tinggiBadan: bayi.tinggiBadan,
-    );
 
     setState(() => _isLoading = false);
     if (!mounted) return;
@@ -147,72 +132,67 @@ class _TambahBayiScreenState extends State<TambahBayiScreen> {
         key: _formKey,
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _sectionHeader('Tanggal Pemeriksaan', Icons.calendar_today_rounded),
-              const SizedBox(height: 12),
-              _dateField(_tglPemeriksaanCtrl, 'Masukkan Tanggal Pemeriksaan'),
-              const SizedBox(height: 24),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            _sectionHeader('Tanggal Pemeriksaan', Icons.calendar_today_rounded),
+            const SizedBox(height: 12),
+            _dateField(_tglPemeriksaanCtrl, 'Pilih Tanggal Pemeriksaan'),
+            const SizedBox(height: 24),
 
-              _sectionHeader('Identitas Bayi', Icons.child_care_rounded),
-              const SizedBox(height: 12),
-              _inputField(_namaBayiCtrl, 'Nama Bayi', 'Masukkan Nama Bayi'),
-              const SizedBox(height: 12),
-              _dateField(_tglLahirCtrl, 'Masukkan Tanggal Lahir Bayi'),
-              const SizedBox(height: 12),
-              _jenisKelaminField(),
-              const SizedBox(height: 12),
-              _numberField(_bbCtrl, 'Berat Badan (kg)', 'Masukkan Berat Badan Bayi'),
-              const SizedBox(height: 12),
-              _numberField(_tbCtrl, 'Tinggi Badan (cm)', 'Masukkan Tinggi Badan Bayi'),
-              const SizedBox(height: 24),
+            _sectionHeader('Identitas Bayi', Icons.child_care_rounded),
+            const SizedBox(height: 12),
+            _inputField(_namaBayiCtrl, 'Nama Bayi', 'Masukkan Nama Bayi'),
+            const SizedBox(height: 12),
+            _dateField(_tglLahirCtrl, 'Masukkan Tanggal Lahir Bayi'),
+            const SizedBox(height: 12),
+            _jenisKelaminField(),
+            const SizedBox(height: 12),
+            _numberField(_bbCtrl, 'Berat Badan (kg)', 'Contoh: 9.2'),
+            const SizedBox(height: 12),
+            _numberField(_tbCtrl, 'Tinggi Badan (cm)', 'Contoh: 78.5'),
+            const SizedBox(height: 24),
 
-              _sectionHeader('Identitas Ibu', Icons.person_outline_rounded),
-              const SizedBox(height: 12),
-              _inputField(_namaIbuCtrl, 'Nama Ibu', 'Masukkan Nama Ibu'),
-              const SizedBox(height: 12),
-              _numberField(_umurIbuCtrl, 'Umur Ibu', 'Masukkan Umur Ibu'),
-              const SizedBox(height: 12),
-              _inputField(_pendidikanCtrl, 'Pendidikan Terakhir',
-                  'Masukkan Pendidikan Terakhir Ibu'),
-              const SizedBox(height: 12),
-              _inputField(_pekerjaanCtrl, 'Pekerjaan Ibu',
-                  'Masukkan Pekerjaan Ibu'),
-              const SizedBox(height: 12),
-              _numberField(_jumlahAnakCtrl, 'Jumlah Anak',
-                  'Masukkan Jumlah Anak'),
-              const SizedBox(height: 32),
+            _sectionHeader('Identitas Ibu', Icons.person_outline_rounded),
+            const SizedBox(height: 12),
+            _inputField(_namaIbuCtrl, 'Nama Ibu', 'Masukkan Nama Ibu'),
+            const SizedBox(height: 12),
+            _numberField(_umurIbuCtrl, 'Umur Ibu', 'Contoh: 28'),
+            const SizedBox(height: 12),
+            _inputField(_pendidikanCtrl, 'Pendidikan Terakhir',
+                'Contoh: S1'),
+            const SizedBox(height: 12),
+            _inputField(_pekerjaanCtrl, 'Pekerjaan Ibu', 'Contoh: Guru'),
+            const SizedBox(height: 12),
+            _numberField(_jumlahAnakCtrl, 'Jumlah Anak', 'Contoh: 2'),
+            const SizedBox(height: 32),
 
-              // Tombol simpan
-              GestureDetector(
-                onTap: _isLoading ? null : _simpan,
-                child: Container(
-                  width: double.infinity, height: 52,
-                  decoration: BoxDecoration(
-                    color: AppColors.pinkDark,
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                  child: Center(
-                    child: _isLoading
-                        ? const SizedBox(width: 22, height: 22,
-                            child: CircularProgressIndicator(
-                                color: Colors.white, strokeWidth: 2.5))
-                        : Row(mainAxisSize: MainAxisSize.min, children: [
-                            const Icon(Icons.save_rounded,
-                                color: Colors.white, size: 20),
-                            const SizedBox(width: 8),
-                            Text('Tambah Anak',
-                                style: GoogleFonts.poppins(
-                                    fontSize: 15, fontWeight: FontWeight.w600,
-                                    color: Colors.white)),
-                          ]),
-                  ),
+            GestureDetector(
+              onTap: _isLoading ? null : _simpan,
+              child: Container(
+                width: double.infinity, height: 52,
+                decoration: BoxDecoration(
+                  color: _isLoading
+                      ? AppColors.pinkDark.withOpacity(0.5)
+                      : AppColors.pinkDark,
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: Center(
+                  child: _isLoading
+                      ? const SizedBox(width: 22, height: 22,
+                          child: CircularProgressIndicator(
+                              color: Colors.white, strokeWidth: 2.5))
+                      : Row(mainAxisSize: MainAxisSize.min, children: [
+                          const Icon(Icons.save_rounded,
+                              color: Colors.white, size: 20),
+                          const SizedBox(width: 8),
+                          Text('Tambah Anak', style: GoogleFonts.poppins(
+                              fontSize: 15, fontWeight: FontWeight.w600,
+                              color: Colors.white)),
+                        ]),
                 ),
               ),
-              const SizedBox(height: 30),
-            ],
-          ),
+            ),
+            const SizedBox(height: 30),
+          ]),
         ),
       ),
     );
@@ -230,35 +210,36 @@ class _TambahBayiScreenState extends State<TambahBayiScreen> {
         fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.textDark)),
   ]);
 
-  Widget _inputField(TextEditingController ctrl, String label, String hint,
-      {bool required = true}) =>
+  Widget _inputField(TextEditingController ctrl, String label, String hint) =>
       Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Text(label, style: GoogleFonts.poppins(
-            fontSize: 13, fontWeight: FontWeight.w500, color: AppColors.textDark)),
+            fontSize: 13, fontWeight: FontWeight.w500,
+            color: AppColors.textDark)),
         const SizedBox(height: 6),
         TextFormField(
           controller: ctrl,
           style: GoogleFonts.poppins(fontSize: 14),
           decoration: InputDecoration(hintText: hint),
-          validator: required
-              ? (v) => (v == null || v.trim().isEmpty) ? '$label wajib diisi' : null
-              : null,
+          validator: (v) => (v == null || v.trim().isEmpty)
+              ? '$label wajib diisi' : null,
         ),
       ]);
 
   Widget _numberField(TextEditingController ctrl, String label, String hint) =>
       Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Text(label, style: GoogleFonts.poppins(
-            fontSize: 13, fontWeight: FontWeight.w500, color: AppColors.textDark)),
+            fontSize: 13, fontWeight: FontWeight.w500,
+            color: AppColors.textDark)),
         const SizedBox(height: 6),
         TextFormField(
           controller: ctrl,
           style: GoogleFonts.poppins(fontSize: 14),
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
-          inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[\d.]'))],
+          inputFormatters: [
+            FilteringTextInputFormatter.allow(RegExp(r'[\d.]'))],
           decoration: InputDecoration(hintText: hint),
-          validator: (v) =>
-              (v == null || v.trim().isEmpty) ? '$label wajib diisi' : null,
+          validator: (v) => (v == null || v.trim().isEmpty)
+              ? '$label wajib diisi' : null,
         ),
       ]);
 
@@ -273,8 +254,8 @@ class _TambahBayiScreenState extends State<TambahBayiScreen> {
               size: 18, color: AppColors.textLight),
         ),
         onTap: () => _pilihTanggal(ctrl),
-        validator: (v) =>
-            (v == null || v.trim().isEmpty) ? 'Tanggal wajib diisi' : null,
+        validator: (v) => (v == null || v.trim().isEmpty)
+            ? 'Tanggal wajib diisi' : null,
       );
 
   Widget _jenisKelaminField() => Column(
@@ -295,8 +276,7 @@ class _TambahBayiScreenState extends State<TambahBayiScreen> {
           isExpanded: true,
           style: GoogleFonts.poppins(fontSize: 14, color: AppColors.textDark),
           items: ['Laki-laki', 'Perempuan'].map((v) =>
-              DropdownMenuItem(value: v,
-                  child: Text(v, style: GoogleFonts.poppins(fontSize: 14)))).toList(),
+              DropdownMenuItem(value: v, child: Text(v))).toList(),
           onChanged: (v) => setState(() => _jenisKelamin = v!),
         ),
       ),

@@ -23,10 +23,52 @@ class _DetailBayiScreenState extends State<DetailBayiScreen> {
 
   Color _statusColor(String status) {
     if (status.toLowerCase().contains('berat')) return const Color(0xFFE53935);
-    if (status.toLowerCase().contains('stunting')) return const Color(0xFFE57373);
+    if (status.toLowerCase() == 'stunting') return const Color(0xFFE57373);
     if (status.toLowerCase().contains('risiko')) return Colors.orange;
     if (status.toLowerCase().contains('pendek')) return Colors.orange;
     return AppColors.success;
+  }
+
+  // Konversi status stunting ke angka untuk grafik
+  double _statusToValue(String status) {
+    switch (status.toLowerCase()) {
+      case 'normal': return 4;
+      case 'risiko stunting': return 3;
+      case 'stunting': return 2;
+      case 'stunting berat': return 1;
+      default: return 0;
+    }
+  }
+
+  // Konversi status gizi ke angka untuk grafik
+  double _giziToValue(String status) {
+    switch (status.toLowerCase()) {
+      case 'normal': return 4;
+      case 'tinggi': return 5;
+      case 'pendek': return 2;
+      case 'sangat pendek': return 1;
+      default: return 0;
+    }
+  }
+
+  // Ambil semua riwayat + data terkini sebagai list terurut
+  List<Map<String, dynamic>> get _semuaData {
+    final List<Map<String, dynamic>> data = [];
+    // Riwayat lama (dari yang paling awal)
+    for (final r in _bayi.riwayatPemeriksaan) {
+      data.add({
+        'tanggal': r['tanggal'] ?? '-',
+        'statusGizi': r['statusGizi'] ?? '-',
+        'statusStunting': r['statusStunting'] ?? '-',
+      });
+    }
+    // Data terkini
+    data.add({
+      'tanggal': _bayi.tanggalPemeriksaan,
+      'statusGizi': _bayi.statusGizi,
+      'statusStunting': _bayi.statusStunting,
+    });
+    return data;
   }
 
   @override
@@ -65,7 +107,7 @@ class _DetailBayiScreenState extends State<DetailBayiScreen> {
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(children: [
-          // Header bayi
+          // ── Header bayi ────────────────────────────────────────────────
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(18),
@@ -102,24 +144,25 @@ class _DetailBayiScreenState extends State<DetailBayiScreen> {
                         fontSize: 12, color: AppColors.textMedium)),
                 const SizedBox(height: 4),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 10, vertical: 3),
                   decoration: BoxDecoration(
                     color: _statusColor(_bayi.statusStunting).withOpacity(0.1),
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(
-                        color: _statusColor(_bayi.statusStunting).withOpacity(0.4)),
+                        color: _statusColor(_bayi.statusStunting)
+                            .withOpacity(0.4)),
                   ),
-                  child: Text(_bayi.statusStunting,
-                      style: GoogleFonts.poppins(
-                          fontSize: 11, fontWeight: FontWeight.w600,
-                          color: _statusColor(_bayi.statusStunting))),
+                  child: Text(_bayi.statusStunting, style: GoogleFonts.poppins(
+                      fontSize: 11, fontWeight: FontWeight.w600,
+                      color: _statusColor(_bayi.statusStunting))),
                 ),
               ])),
             ]),
           ),
           const SizedBox(height: 14),
 
-          // Data ukur
+          // ── Data pengukuran ────────────────────────────────────────────
           _infoCard('Data Pengukuran', [
             _infoRow('Nama Bayi', _bayi.namaBayi),
             _infoRow('Umur Bayi', '${_bayi.umurBulan} bulan'),
@@ -127,33 +170,61 @@ class _DetailBayiScreenState extends State<DetailBayiScreen> {
             _infoRow('Tinggi Badan', '${_bayi.tinggiBadan} cm'),
             _infoRow('Jenis Kelamin', _bayi.jenisKelamin),
             _infoRow('Nama Ibu', _bayi.namaIbu),
-            _infoRow('Tanggal Pemeriksaan', _bayi.tanggalPemeriksaan),
+            _infoRow('Tgl Pemeriksaan', _bayi.tanggalPemeriksaan),
           ]),
           const SizedBox(height: 14),
 
-          // Status gizi & stunting
+          // ── Status card ────────────────────────────────────────────────
           Row(children: [
-            Expanded(child: _statusCard(
-                'Status Gizi', _bayi.statusGizi,
+            Expanded(child: _statusCard('Status Gizi', _bayi.statusGizi,
                 Icons.monitor_weight_rounded)),
             const SizedBox(width: 12),
-            Expanded(child: _statusCard(
-                'Status Stunting', _bayi.statusStunting,
+            Expanded(child: _statusCard('Status Stunting', _bayi.statusStunting,
                 Icons.health_and_safety_rounded)),
           ]),
           const SizedBox(height: 14),
 
-          // Grafik placeholder
-          _grafikCard(),
+          // ── Grafik Status Gizi ─────────────────────────────────────────
+          _buildGrafikCard(
+            title: 'Grafik Status Gizi',
+            data: _semuaData,
+            getValue: (d) => _giziToValue(d['statusGizi']),
+            getLabel: (d) => d['statusGizi'],
+            color: AppColors.blueDark,
+            bgColor: AppColors.blue,
+            labelMap: {
+              5: 'Tinggi',
+              4: 'Normal',
+              2: 'Pendek',
+              1: 'Sangat Pendek',
+            },
+          ),
           const SizedBox(height: 14),
 
-          // Riwayat
+          // ── Grafik Status Stunting ─────────────────────────────────────
+          _buildGrafikCard(
+            title: 'Grafik Status Stunting',
+            data: _semuaData,
+            getValue: (d) => _statusToValue(d['statusStunting']),
+            getLabel: (d) => d['statusStunting'],
+            color: AppColors.pinkDark,
+            bgColor: AppColors.pink,
+            labelMap: {
+              4: 'Normal',
+              3: 'Risiko',
+              2: 'Stunting',
+              1: 'Berat',
+            },
+          ),
+          const SizedBox(height: 14),
+
+          // ── Riwayat pemeriksaan ────────────────────────────────────────
           if (_bayi.riwayatPemeriksaan.isNotEmpty) ...[
             _riwayatCard(),
             const SizedBox(height: 14),
           ],
 
-          // Tombol update
+          // ── Tombol update ──────────────────────────────────────────────
           GestureDetector(
             onTap: () async {
               final result = await Navigator.push(context,
@@ -167,14 +238,14 @@ class _DetailBayiScreenState extends State<DetailBayiScreen> {
                 color: AppColors.pinkDark,
                 borderRadius: BorderRadius.circular(14),
               ),
-              child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+              child: Row(mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
                 const Icon(Icons.add_chart_rounded,
                     color: Colors.white, size: 20),
                 const SizedBox(width: 8),
-                Text('Tambah Pemeriksaan',
-                    style: GoogleFonts.poppins(
-                        fontSize: 15, fontWeight: FontWeight.w600,
-                        color: Colors.white)),
+                Text('Tambah Pemeriksaan', style: GoogleFonts.poppins(
+                    fontSize: 15, fontWeight: FontWeight.w600,
+                    color: Colors.white)),
               ]),
             ),
           ),
@@ -184,6 +255,118 @@ class _DetailBayiScreenState extends State<DetailBayiScreen> {
     );
   }
 
+  // ── Grafik card ──────────────────────────────────────────────────────────
+  Widget _buildGrafikCard({
+    required String title,
+    required List<Map<String, dynamic>> data,
+    required double Function(Map<String, dynamic>) getValue,
+    required String Function(Map<String, dynamic>) getLabel,
+    required Color color,
+    required Color bgColor,
+    required Map<int, String> labelMap,
+  }) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.cardBorder),
+      ),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Row(children: [
+          Container(
+            padding: const EdgeInsets.all(6),
+            decoration: BoxDecoration(
+              color: bgColor.withOpacity(0.3),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(Icons.show_chart_rounded, color: color, size: 16),
+          ),
+          const SizedBox(width: 8),
+          Text(title, style: GoogleFonts.poppins(
+              fontSize: 13, fontWeight: FontWeight.w700,
+              color: AppColors.textDark)),
+        ]),
+        const SizedBox(height: 14),
+
+        if (data.length < 2)
+          Center(child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(children: [
+              Icon(Icons.show_chart_rounded, size: 36, color: color.withOpacity(0.3)),
+              const SizedBox(height: 8),
+              Text('Butuh minimal 2 data pemeriksaan',
+                  style: GoogleFonts.poppins(
+                      fontSize: 12, color: AppColors.textLight)),
+            ]),
+          ))
+        else ...[
+          // Grafik
+          SizedBox(
+            height: 130,
+            child: CustomPaint(
+              size: const Size(double.infinity, 130),
+              painter: _StatusGrafikPainter(
+                values: data.map(getValue).toList(),
+                color: color,
+                bgColor: bgColor,
+              ),
+            ),
+          ),
+          const SizedBox(height: 10),
+
+          // Label tanggal di bawah grafik
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: List.generate(data.length, (i) {
+              final tgl = data[i]['tanggal'] as String;
+              // Ambil bulan-tahun saja
+              final parts = tgl.split('-');
+              final label = parts.length >= 2
+                  ? '${parts[1]}/${parts[0].substring(2)}'
+                  : tgl;
+              return Flexible(
+                child: Text(label,
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.poppins(
+                        fontSize: 9, color: AppColors.textLight)),
+              );
+            }),
+          ),
+          const SizedBox(height: 10),
+
+          // Status terkini
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: _statusColor(getLabel(data.last)).withOpacity(0.08),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Row(children: [
+              Container(
+                width: 8, height: 8,
+                decoration: BoxDecoration(
+                  color: _statusColor(getLabel(data.last)),
+                  shape: BoxShape.circle,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Text('Terkini: ',
+                  style: GoogleFonts.poppins(
+                      fontSize: 12, color: AppColors.textMedium)),
+              Text(getLabel(data.last),
+                  style: GoogleFonts.poppins(
+                      fontSize: 12, fontWeight: FontWeight.w700,
+                      color: _statusColor(getLabel(data.last)))),
+            ]),
+          ),
+        ],
+      ]),
+    );
+  }
+
+  // ── Info cards ───────────────────────────────────────────────────────────
   Widget _infoCard(String title, List<Widget> rows) => Container(
     width: double.infinity,
     padding: const EdgeInsets.all(16),
@@ -194,7 +377,8 @@ class _DetailBayiScreenState extends State<DetailBayiScreen> {
     ),
     child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       Text(title, style: GoogleFonts.poppins(
-          fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.textDark)),
+          fontSize: 13, fontWeight: FontWeight.w700,
+          color: AppColors.textDark)),
       const SizedBox(height: 10),
       ...rows,
     ]),
@@ -206,7 +390,8 @@ class _DetailBayiScreenState extends State<DetailBayiScreen> {
       Expanded(flex: 2, child: Text(label, style: GoogleFonts.poppins(
           fontSize: 12, color: AppColors.textMedium))),
       Expanded(flex: 3, child: Text(value, style: GoogleFonts.poppins(
-          fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.textDark))),
+          fontSize: 13, fontWeight: FontWeight.w600,
+          color: AppColors.textDark))),
     ]),
   );
 
@@ -230,44 +415,6 @@ class _DetailBayiScreenState extends State<DetailBayiScreen> {
     ]),
   );
 
-  Widget _grafikCard() => Container(
-    width: double.infinity,
-    padding: const EdgeInsets.all(16),
-    decoration: BoxDecoration(
-      color: AppColors.white,
-      borderRadius: BorderRadius.circular(16),
-      border: Border.all(color: AppColors.cardBorder),
-    ),
-    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Text('Grafik Pertumbuhan', style: GoogleFonts.poppins(
-          fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.textDark)),
-      const SizedBox(height: 12),
-      if (_bayi.riwayatPemeriksaan.length < 2)
-        Center(
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(children: [
-              Icon(Icons.show_chart_rounded,
-                  size: 40, color: AppColors.textLight),
-              const SizedBox(height: 8),
-              Text('Butuh minimal 2 data pengukuran',
-                  style: GoogleFonts.poppins(
-                      fontSize: 12, color: AppColors.textLight)),
-            ]),
-          ),
-        )
-      else
-        SizedBox(
-          height: 120,
-          child: CustomPaint(
-            size: const Size(double.infinity, 120),
-            painter: _GrafikPainter(_bayi.riwayatPemeriksaan
-                .map((r) => (r['tinggiBadan'] as double)).toList()),
-          ),
-        ),
-    ]),
-  );
-
   Widget _riwayatCard() => Container(
     width: double.infinity,
     padding: const EdgeInsets.all(16),
@@ -278,7 +425,8 @@ class _DetailBayiScreenState extends State<DetailBayiScreen> {
     ),
     child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       Text('Riwayat Pemeriksaan', style: GoogleFonts.poppins(
-          fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.textDark)),
+          fontSize: 13, fontWeight: FontWeight.w700,
+          color: AppColors.textDark)),
       const SizedBox(height: 10),
       ..._bayi.riwayatPemeriksaan.reversed.map((r) => Container(
         margin: const EdgeInsets.only(bottom: 8),
@@ -297,67 +445,101 @@ class _DetailBayiScreenState extends State<DetailBayiScreen> {
                 style: GoogleFonts.poppins(
                     fontSize: 11, color: AppColors.textMedium)),
           ])),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-            decoration: BoxDecoration(
-              color: _statusColor(r['statusStunting'] ?? '').withOpacity(0.1),
-              borderRadius: BorderRadius.circular(10),
+          Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+              decoration: BoxDecoration(
+                color: _statusColor(r['statusStunting'] ?? '')
+                    .withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Text(r['statusStunting'] ?? '-',
+                  style: GoogleFonts.poppins(
+                      fontSize: 10, fontWeight: FontWeight.w600,
+                      color: _statusColor(r['statusStunting'] ?? ''))),
             ),
-            child: Text(r['statusStunting'] ?? '-',
-                style: GoogleFonts.poppins(
-                    fontSize: 10, fontWeight: FontWeight.w600,
-                    color: _statusColor(r['statusStunting'] ?? ''))),
-          ),
+            const SizedBox(height: 2),
+            Text(r['statusGizi'] ?? '-', style: GoogleFonts.poppins(
+                fontSize: 10, color: AppColors.textLight)),
+          ]),
         ]),
       )),
     ]),
   );
 }
 
-class _GrafikPainter extends CustomPainter {
-  final List<double> data;
-  _GrafikPainter(this.data);
+// ── Custom Painter untuk grafik status ──────────────────────────────────────
+class _StatusGrafikPainter extends CustomPainter {
+  final List<double> values;
+  final Color color;
+  final Color bgColor;
+
+  _StatusGrafikPainter({
+    required this.values,
+    required this.color,
+    required this.bgColor,
+  });
 
   @override
   void paint(Canvas canvas, Size size) {
-    if (data.length < 2) return;
-    final paint = Paint()
-      ..color = AppColors.pinkDark
-      ..strokeWidth = 2.5
-      ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.round;
+    if (values.length < 2) return;
 
-    final fillPaint = Paint()
-      ..color = AppColors.pink.withOpacity(0.2)
-      ..style = PaintingStyle.fill;
-
-    final minVal = data.reduce((a, b) => a < b ? a : b) - 2;
-    final maxVal = data.reduce((a, b) => a > b ? a : b) + 2;
+    final maxVal = 5.0;
+    final minVal = 0.0;
     final range = maxVal - minVal;
 
-    double x(int i) => i * size.width / (data.length - 1);
-    double y(double v) => size.height - ((v - minVal) / range * size.height);
+    double x(int i) => i * size.width / (values.length - 1);
+    double y(double v) =>
+        size.height - ((v - minVal) / range * (size.height - 20)) - 10;
 
-    final path = Path()..moveTo(x(0), y(data[0]));
-    for (int i = 1; i < data.length; i++) {
-      path.lineTo(x(i), y(data[i]));
+    // Grid lines
+    final gridPaint = Paint()
+      ..color = AppColors.cardBorder
+      ..strokeWidth = 1;
+    for (int i = 1; i <= 4; i++) {
+      final yPos = size.height - (i / 5 * (size.height - 20)) - 10;
+      canvas.drawLine(Offset(0, yPos), Offset(size.width, yPos), gridPaint);
     }
 
+    // Fill
     final fillPath = Path()..moveTo(x(0), size.height);
-    for (int i = 0; i < data.length; i++) {
-      fillPath.lineTo(x(i), y(data[i]));
+    for (int i = 0; i < values.length; i++) {
+      fillPath.lineTo(x(i), y(values[i]));
     }
-    fillPath.lineTo(x(data.length - 1), size.height);
+    fillPath.lineTo(x(values.length - 1), size.height);
     fillPath.close();
+    canvas.drawPath(
+      fillPath,
+      Paint()..color = bgColor.withOpacity(0.2)..style = PaintingStyle.fill,
+    );
 
-    canvas.drawPath(fillPath, fillPaint);
-    canvas.drawPath(path, paint);
+    // Line
+    final linePath = Path()..moveTo(x(0), y(values[0]));
+    for (int i = 1; i < values.length; i++) {
+      linePath.lineTo(x(i), y(values[i]));
+    }
+    canvas.drawPath(
+      linePath,
+      Paint()
+        ..color = color
+        ..strokeWidth = 2.5
+        ..style = PaintingStyle.stroke
+        ..strokeCap = StrokeCap.round
+        ..strokeJoin = StrokeJoin.round,
+    );
 
-    final dotPaint = Paint()
-      ..color = AppColors.pinkDark
-      ..style = PaintingStyle.fill;
-    for (int i = 0; i < data.length; i++) {
-      canvas.drawCircle(Offset(x(i), y(data[i])), 4, dotPaint);
+    // Dots
+    for (int i = 0; i < values.length; i++) {
+      canvas.drawCircle(
+        Offset(x(i), y(values[i])),
+        5,
+        Paint()..color = Colors.white..style = PaintingStyle.fill,
+      );
+      canvas.drawCircle(
+        Offset(x(i), y(values[i])),
+        4,
+        Paint()..color = color..style = PaintingStyle.fill,
+      );
     }
   }
 

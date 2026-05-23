@@ -17,13 +17,12 @@ class _DataBayiScreenState extends State<DataBayiScreen> {
   final _searchCtrl = TextEditingController();
   String _search = '';
   String _filter = 'Semua';
-  final List<String> _filters = ['Semua', 'Normal', 'Risiko Stunting', 'Stunting', 'Stunting Berat'];
+  final List<String> _filters = [
+    'Semua', 'Normal', 'Risiko Stunting', 'Pendek', 'Sangat Pendek'
+  ];
 
   @override
-  void dispose() {
-    _searchCtrl.dispose();
-    super.dispose();
-  }
+  void dispose() { _searchCtrl.dispose(); super.dispose(); }
 
   List<BayiModel> get _filtered {
     final data = BayiService().dataBayi;
@@ -38,10 +37,64 @@ class _DataBayiScreenState extends State<DataBayiScreen> {
   }
 
   Color _statusColor(String status) {
-    if (status.toLowerCase().contains('berat')) return const Color(0xFFE53935);
-    if (status.toLowerCase() == 'stunting') return const Color(0xFFE57373);
+    if (status.toLowerCase().contains('sangat')) return const Color(0xFFE53935);
+    if (status.toLowerCase().contains('pendek')) return const Color(0xFFE57373);
     if (status.toLowerCase().contains('risiko')) return Colors.orange;
     return AppColors.success;
+  }
+
+  void _hapusBayi(BayiModel bayi) async {
+    final konfirmasi = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Text('Hapus Data Bayi?', style: GoogleFonts.poppins(
+            fontWeight: FontWeight.w700, fontSize: 16)),
+        content: Column(mainAxisSize: MainAxisSize.min, children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: const Color(0xFFFFEBEE),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(children: [
+              const Icon(Icons.warning_amber_rounded,
+                  color: Color(0xFFE53935), size: 20),
+              const SizedBox(width: 10),
+              Expanded(child: Text(
+                'Data ${bayi.namaBayi} dan seluruh riwayat pemeriksaannya akan dihapus permanen.',
+                style: GoogleFonts.poppins(fontSize: 12, height: 1.4,
+                    color: const Color(0xFFE53935)),
+              )),
+            ]),
+          ),
+        ]),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text('Batal', style: GoogleFonts.poppins(
+                color: AppColors.textMedium))),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: Text('Hapus', style: GoogleFonts.poppins(
+                color: const Color(0xFFE53935),
+                fontWeight: FontWeight.w700))),
+        ],
+      ),
+    );
+    if (konfirmasi == true) {
+      BayiService().hapusBayi(bayi.id);
+      setState(() {});
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text('Data ${bayi.namaBayi} dihapus',
+            style: GoogleFonts.poppins(fontSize: 13)),
+        backgroundColor: AppColors.textMedium,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        margin: const EdgeInsets.all(16),
+      ));
+    }
   }
 
   @override
@@ -75,7 +128,8 @@ class _DataBayiScreenState extends State<DataBayiScreen> {
                 color: AppColors.pinkDark)),
             Text('${BayiService().totalBayi} bayi terdaftar',
                 style: GoogleFonts.poppins(
-                    fontSize: 12, color: AppColors.pinkDark.withOpacity(0.7))),
+                    fontSize: 12,
+                    color: AppColors.pinkDark.withOpacity(0.7))),
           ]),
           const Spacer(),
           GestureDetector(
@@ -102,7 +156,6 @@ class _DataBayiScreenState extends State<DataBayiScreen> {
           color: AppColors.white,
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
           child: Column(children: [
-            // Search bar
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 14),
               decoration: BoxDecoration(
@@ -141,7 +194,6 @@ class _DataBayiScreenState extends State<DataBayiScreen> {
               ]),
             ),
             const SizedBox(height: 10),
-            // Filter chips
             SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               child: Row(children: _filters.map((f) {
@@ -156,7 +208,8 @@ class _DataBayiScreenState extends State<DataBayiScreen> {
                       color: active ? AppColors.pinkDark : AppColors.background,
                       borderRadius: BorderRadius.circular(20),
                       border: Border.all(
-                          color: active ? AppColors.pinkDark : AppColors.cardBorder),
+                          color: active
+                              ? AppColors.pinkDark : AppColors.cardBorder),
                     ),
                     child: Text(f, style: GoogleFonts.poppins(
                         fontSize: 12,
@@ -197,74 +250,105 @@ class _DataBayiScreenState extends State<DataBayiScreen> {
                   itemCount: list.length,
                   itemBuilder: (_, i) {
                     final bayi = list[i];
-                    final isLaki = bayi.jenisKelamin.toLowerCase().contains('laki');
-                    return GestureDetector(
-                      onTap: () async {
-                        final result = await Navigator.push(context,
-                            MaterialPageRoute(builder: (_) =>
-                                DetailBayiScreen(bayi: bayi)));
-                        if (result == true) setState(() {});
-                      },
-                      child: Container(
+                    final isLaki =
+                        bayi.jenisKelamin.toLowerCase().contains('laki');
+                    return Dismissible(
+                      key: Key(bayi.id),
+                      direction: DismissDirection.endToStart,
+                      background: Container(
                         margin: const EdgeInsets.only(bottom: 10),
-                        padding: const EdgeInsets.all(14),
                         decoration: BoxDecoration(
-                          color: AppColors.white,
+                          color: const Color(0xFFFFEBEE),
                           borderRadius: BorderRadius.circular(14),
-                          border: Border.all(color: AppColors.cardBorder),
-                          boxShadow: [BoxShadow(
-                              color: Colors.black.withOpacity(0.03),
-                              blurRadius: 8, offset: const Offset(0, 3))],
                         ),
-                        child: Row(children: [
-                          Container(
-                            width: 46, height: 46,
-                            decoration: BoxDecoration(
-                              color: isLaki ? AppColors.blue : AppColors.pink,
-                              borderRadius: BorderRadius.circular(13),
-                            ),
-                            child: Icon(
-                              isLaki ? Icons.boy_rounded : Icons.girl_rounded,
-                              color: isLaki ? AppColors.blueDark : AppColors.pinkDark,
-                              size: 26,
-                            ),
+                        alignment: Alignment.centerRight,
+                        padding: const EdgeInsets.only(right: 20),
+                        child: const Icon(Icons.delete_rounded,
+                            color: Color(0xFFE53935), size: 24),
+                      ),
+                      confirmDismiss: (_) async {
+                        _hapusBayi(bayi);
+                        return false; // kita handle manual
+                      },
+                      child: GestureDetector(
+                        onTap: () async {
+                          final result = await Navigator.push(context,
+                              MaterialPageRoute(builder: (_) =>
+                                  DetailBayiScreen(bayi: bayi)));
+                          if (result == true) setState(() {});
+                        },
+                        child: Container(
+                          margin: const EdgeInsets.only(bottom: 10),
+                          padding: const EdgeInsets.all(14),
+                          decoration: BoxDecoration(
+                            color: AppColors.white,
+                            borderRadius: BorderRadius.circular(14),
+                            border: Border.all(color: AppColors.cardBorder),
+                            boxShadow: [BoxShadow(
+                                color: Colors.black.withOpacity(0.03),
+                                blurRadius: 8, offset: const Offset(0, 3))],
                           ),
-                          const SizedBox(width: 12),
-                          Expanded(child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                            Text(bayi.namaBayi, style: GoogleFonts.poppins(
-                                fontSize: 13, fontWeight: FontWeight.w700,
-                                color: AppColors.textDark)),
-                            const SizedBox(height: 2),
-                            Text('Ibu: ${bayi.namaIbu}',
-                                style: GoogleFonts.poppins(
-                                    fontSize: 11, color: AppColors.textMedium)),
-                            Text('${bayi.umurBulan} bulan · BB ${bayi.beratBadan} kg · TB ${bayi.tinggiBadan} cm',
-                                style: GoogleFonts.poppins(
-                                    fontSize: 11, color: AppColors.textMedium)),
-                          ])),
-                          Column(
-                              crossAxisAlignment: CrossAxisAlignment.end,
-                              children: [
+                          child: Row(children: [
                             Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 8, vertical: 3),
+                              width: 46, height: 46,
                               decoration: BoxDecoration(
-                                color: _statusColor(bayi.statusStunting)
-                                    .withOpacity(0.1),
-                                borderRadius: BorderRadius.circular(10),
+                                color: isLaki ? AppColors.blue : AppColors.pink,
+                                borderRadius: BorderRadius.circular(13),
                               ),
-                              child: Text(bayi.statusStunting,
-                                  style: GoogleFonts.poppins(
-                                      fontSize: 10, fontWeight: FontWeight.w600,
-                                      color: _statusColor(bayi.statusStunting))),
+                              child: Icon(
+                                isLaki ? Icons.boy_rounded : Icons.girl_rounded,
+                                color: isLaki
+                                    ? AppColors.blueDark : AppColors.pinkDark,
+                                size: 26,
+                              ),
                             ),
-                            const SizedBox(height: 4),
-                            const Icon(Icons.arrow_forward_ios_rounded,
-                                size: 12, color: AppColors.textLight),
+                            const SizedBox(width: 12),
+                            Expanded(child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                              Text(bayi.namaBayi, style: GoogleFonts.poppins(
+                                  fontSize: 13, fontWeight: FontWeight.w700,
+                                  color: AppColors.textDark)),
+                              const SizedBox(height: 2),
+                              Text('Ibu: ${bayi.namaIbu}',
+                                  style: GoogleFonts.poppins(
+                                      fontSize: 11,
+                                      color: AppColors.textMedium)),
+                              Text('${bayi.umurBulan} bln · ${bayi.beratBadan} kg · ${bayi.tinggiBadan} cm',
+                                  style: GoogleFonts.poppins(
+                                      fontSize: 11,
+                                      color: AppColors.textMedium)),
+                            ])),
+                            Column(
+                                crossAxisAlignment: CrossAxisAlignment.end,
+                                children: [
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 8, vertical: 3),
+                                decoration: BoxDecoration(
+                                  color: _statusColor(bayi.statusStunting)
+                                      .withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: Text(bayi.statusStunting,
+                                    style: GoogleFonts.poppins(
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.w600,
+                                        color: _statusColor(
+                                            bayi.statusStunting))),
+                              ),
+                              const SizedBox(height: 4),
+                              GestureDetector(
+                                onTap: () => _hapusBayi(bayi),
+                                child: Container(
+                                  padding: const EdgeInsets.all(4),
+                                  child: const Icon(Icons.delete_outline_rounded,
+                                      size: 18, color: AppColors.textLight),
+                                ),
+                              ),
+                            ]),
                           ]),
-                        ]),
+                        ),
                       ),
                     );
                   },

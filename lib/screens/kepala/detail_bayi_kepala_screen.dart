@@ -1,5 +1,4 @@
 // lib/screens/kepala/detail_bayi_kepala_screen.dart
-// View-only untuk kepala puskesmas (tidak ada tombol edit/tambah)
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../utils/app_theme.dart';
@@ -15,6 +14,43 @@ class DetailBayiKepalaScreen extends StatelessWidget {
     if (status.toLowerCase().contains('risiko')) return Colors.orange;
     if (status.toLowerCase().contains('pendek')) return Colors.orange;
     return AppColors.success;
+  }
+
+  double _statusToValue(String status) {
+    switch (status.toLowerCase()) {
+      case 'normal': return 4;
+      case 'risiko stunting': return 3;
+      case 'stunting': return 2;
+      case 'stunting berat': return 1;
+      default: return 0;
+    }
+  }
+
+  double _giziToValue(String status) {
+    switch (status.toLowerCase()) {
+      case 'normal': return 4;
+      case 'tinggi': return 5;
+      case 'pendek': return 2;
+      case 'sangat pendek': return 1;
+      default: return 0;
+    }
+  }
+
+  List<Map<String, dynamic>> get _semuaData {
+    final List<Map<String, dynamic>> data = [];
+    for (final r in bayi.riwayatPemeriksaan) {
+      data.add({
+        'tanggal': r['tanggal'] ?? '-',
+        'statusGizi': r['statusGizi'] ?? '-',
+        'statusStunting': r['statusStunting'] ?? '-',
+      });
+    }
+    data.add({
+      'tanggal': bayi.tanggalPemeriksaan,
+      'statusGizi': bayi.statusGizi,
+      'statusStunting': bayi.statusStunting,
+    });
+    return data;
   }
 
   @override
@@ -53,7 +89,7 @@ class DetailBayiKepalaScreen extends StatelessWidget {
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(children: [
-          // Header bayi
+          // Header
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(18),
@@ -90,8 +126,7 @@ class DetailBayiKepalaScreen extends StatelessWidget {
                         fontSize: 12, color: AppColors.textMedium)),
                 const SizedBox(height: 4),
                 Container(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 10, vertical: 3),
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
                   decoration: BoxDecoration(
                     color: _statusColor(bayi.statusStunting).withOpacity(0.1),
                     borderRadius: BorderRadius.circular(20),
@@ -107,7 +142,6 @@ class DetailBayiKepalaScreen extends StatelessWidget {
           ),
           const SizedBox(height: 14),
 
-          // Data pengukuran
           _infoCard('Data Pengukuran', [
             _infoRow('Nama Bayi', bayi.namaBayi),
             _infoRow('Umur Bayi', '${bayi.umurBulan} bulan'),
@@ -115,11 +149,10 @@ class DetailBayiKepalaScreen extends StatelessWidget {
             _infoRow('Tinggi Badan', '${bayi.tinggiBadan} cm'),
             _infoRow('Jenis Kelamin', bayi.jenisKelamin),
             _infoRow('Nama Ibu', bayi.namaIbu),
-            _infoRow('Tanggal Pemeriksaan', bayi.tanggalPemeriksaan),
+            _infoRow('Tgl Pemeriksaan', bayi.tanggalPemeriksaan),
           ]),
           const SizedBox(height: 14),
 
-          // Identitas ibu
           _infoCard('Identitas Ibu', [
             _infoRow('Nama Ibu', bayi.namaIbu),
             _infoRow('Umur Ibu', bayi.umurIbu),
@@ -129,7 +162,6 @@ class DetailBayiKepalaScreen extends StatelessWidget {
           ]),
           const SizedBox(height: 14),
 
-          // Status
           Row(children: [
             Expanded(child: _statusCard('Status Gizi', bayi.statusGizi,
                 Icons.monitor_weight_rounded)),
@@ -139,12 +171,125 @@ class DetailBayiKepalaScreen extends StatelessWidget {
           ]),
           const SizedBox(height: 14),
 
-          // Riwayat
-          if (bayi.riwayatPemeriksaan.isNotEmpty)
+          // Grafik Status Gizi
+          _buildGrafikCard(
+            title: 'Grafik Status Gizi',
+            data: _semuaData,
+            getValue: (d) => _giziToValue(d['statusGizi']),
+            getLabel: (d) => d['statusGizi'],
+            color: AppColors.blueDark,
+            bgColor: AppColors.blue,
+          ),
+          const SizedBox(height: 14),
+
+          // Grafik Status Stunting
+          _buildGrafikCard(
+            title: 'Grafik Status Stunting',
+            data: _semuaData,
+            getValue: (d) => _statusToValue(d['statusStunting']),
+            getLabel: (d) => d['statusStunting'],
+            color: AppColors.pinkDark,
+            bgColor: AppColors.pink,
+          ),
+
+          if (bayi.riwayatPemeriksaan.isNotEmpty) ...[
+            const SizedBox(height: 14),
             _riwayatCard(),
+          ],
           const SizedBox(height: 30),
         ]),
       ),
+    );
+  }
+
+  Widget _buildGrafikCard({
+    required String title,
+    required List<Map<String, dynamic>> data,
+    required double Function(Map<String, dynamic>) getValue,
+    required String Function(Map<String, dynamic>) getLabel,
+    required Color color,
+    required Color bgColor,
+  }) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.cardBorder),
+      ),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Row(children: [
+          Container(
+            padding: const EdgeInsets.all(6),
+            decoration: BoxDecoration(
+              color: bgColor.withOpacity(0.3),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(Icons.show_chart_rounded, color: color, size: 16),
+          ),
+          const SizedBox(width: 8),
+          Text(title, style: GoogleFonts.poppins(
+              fontSize: 13, fontWeight: FontWeight.w700,
+              color: AppColors.textDark)),
+        ]),
+        const SizedBox(height: 14),
+        if (data.length < 2)
+          Center(child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Text('Butuh minimal 2 data pemeriksaan',
+                style: GoogleFonts.poppins(
+                    fontSize: 12, color: AppColors.textLight)),
+          ))
+        else ...[
+          SizedBox(
+            height: 130,
+            child: CustomPaint(
+              size: const Size(double.infinity, 130),
+              painter: _GrafikPainter(
+                values: data.map(getValue).toList(),
+                color: color,
+                bgColor: bgColor,
+              ),
+            ),
+          ),
+          const SizedBox(height: 10),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: List.generate(data.length, (i) {
+              final tgl = data[i]['tanggal'] as String;
+              final parts = tgl.split('-');
+              final label = parts.length >= 2
+                  ? '${parts[1]}/${parts[0].substring(2)}'
+                  : tgl;
+              return Flexible(child: Text(label,
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.poppins(
+                      fontSize: 9, color: AppColors.textLight)));
+            }),
+          ),
+          const SizedBox(height: 10),
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: _statusColor(getLabel(data.last)).withOpacity(0.08),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Row(children: [
+              Container(width: 8, height: 8,
+                  decoration: BoxDecoration(
+                      color: _statusColor(getLabel(data.last)),
+                      shape: BoxShape.circle)),
+              const SizedBox(width: 8),
+              Text('Terkini: ', style: GoogleFonts.poppins(
+                  fontSize: 12, color: AppColors.textMedium)),
+              Text(getLabel(data.last), style: GoogleFonts.poppins(
+                  fontSize: 12, fontWeight: FontWeight.w700,
+                  color: _statusColor(getLabel(data.last)))),
+            ]),
+          ),
+        ],
+      ]),
     );
   }
 
@@ -170,8 +315,7 @@ class DetailBayiKepalaScreen extends StatelessWidget {
       Expanded(flex: 2, child: Text(label, style: GoogleFonts.poppins(
           fontSize: 12, color: AppColors.textMedium))),
       Expanded(flex: 3, child: Text(value, style: GoogleFonts.poppins(
-          fontSize: 13, fontWeight: FontWeight.w600,
-          color: AppColors.textDark))),
+          fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.textDark))),
     ]),
   );
 
@@ -189,8 +333,7 @@ class DetailBayiKepalaScreen extends StatelessWidget {
           fontSize: 11, color: AppColors.textMedium)),
       const SizedBox(height: 4),
       Text(value, textAlign: TextAlign.center,
-          style: GoogleFonts.poppins(
-              fontSize: 13, fontWeight: FontWeight.w700,
+          style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w700,
               color: _statusColor(value))),
     ]),
   );
@@ -238,4 +381,50 @@ class DetailBayiKepalaScreen extends StatelessWidget {
       )),
     ]),
   );
+}
+
+class _GrafikPainter extends CustomPainter {
+  final List<double> values;
+  final Color color;
+  final Color bgColor;
+  _GrafikPainter({required this.values, required this.color, required this.bgColor});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (values.length < 2) return;
+    double x(int i) => i * size.width / (values.length - 1);
+    double y(double v) =>
+        size.height - ((v / 5.0) * (size.height - 20)) - 10;
+
+    final gridPaint = Paint()
+      ..color = AppColors.cardBorder..strokeWidth = 1;
+    for (int i = 1; i <= 4; i++) {
+      final yPos = size.height - (i / 5 * (size.height - 20)) - 10;
+      canvas.drawLine(Offset(0, yPos), Offset(size.width, yPos), gridPaint);
+    }
+
+    final fillPath = Path()..moveTo(x(0), size.height);
+    for (int i = 0; i < values.length; i++) fillPath.lineTo(x(i), y(values[i]));
+    fillPath.lineTo(x(values.length - 1), size.height);
+    fillPath.close();
+    canvas.drawPath(fillPath,
+        Paint()..color = bgColor.withOpacity(0.2)..style = PaintingStyle.fill);
+
+    final linePath = Path()..moveTo(x(0), y(values[0]));
+    for (int i = 1; i < values.length; i++) linePath.lineTo(x(i), y(values[i]));
+    canvas.drawPath(linePath, Paint()
+      ..color = color..strokeWidth = 2.5
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round..strokeJoin = StrokeJoin.round);
+
+    for (int i = 0; i < values.length; i++) {
+      canvas.drawCircle(Offset(x(i), y(values[i])), 5,
+          Paint()..color = Colors.white..style = PaintingStyle.fill);
+      canvas.drawCircle(Offset(x(i), y(values[i])), 4,
+          Paint()..color = color..style = PaintingStyle.fill);
+    }
+  }
+
+  @override
+  bool shouldRepaint(_) => true;
 }
