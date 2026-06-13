@@ -89,13 +89,3 @@ Follow these instructions to get a copy of the project up and running on your lo
 ## 🤝 Contributing
 
 Contributions, issues, and feature requests are welcome! Feel free to check the [issues page](https://github.com/yourusername/AA-PoDiTa/issues).
-
-## 📄 License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
----
-
-<div align="center">
-  <i>Developed with ❤️ for a healthier future.</i>
-</div>
