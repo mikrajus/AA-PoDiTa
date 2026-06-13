@@ -30,12 +30,12 @@ This application replaces the manual tracking system with a robust digital platf
 
 ## 📸 Screenshots
 <div align="center">
-  <img width="720" height="1600" alt="image" src="https://github.com/user-attachments/assets/fa015678-06e0-4179-9c7f-ed240229a2d4" />
-  <img width="720" height="1600" alt="image" src="https://github.com/user-attachments/assets/45ee4624-6882-48ba-a6e7-6700f5ad462c" />
-  <img width="720" height="1600" alt="image" src="https://github.com/user-attachments/assets/ed76f810-f344-41bc-b28f-8606cb3be4ab" />
-  <img width="720" height="1600" alt="image" src="https://github.com/user-attachments/assets/1d4c3978-5542-450c-aabf-ebd164b06fea" />
-  <img width="720" height="1600" alt="image" src="https://github.com/user-attachments/assets/a7c6402e-c026-4770-8d41-8731ef5891a8" />
-  <img width="720" height="1600" alt="image" src="https://github.com/user-attachments/assets/a1e8d6bb-165f-44e3-b180-5e15ec052e8f" />
+  <img width="350" height="700" alt="image" src="https://github.com/user-attachments/assets/fa015678-06e0-4179-9c7f-ed240229a2d4" />
+  <img width="350" height="700" alt="image" src="https://github.com/user-attachments/assets/45ee4624-6882-48ba-a6e7-6700f5ad462c" />
+  <img width="350" height="700" alt="image" src="https://github.com/user-attachments/assets/ed76f810-f344-41bc-b28f-8606cb3be4ab" />
+  <img width="350" height="700" alt="image" src="https://github.com/user-attachments/assets/1d4c3978-5542-450c-aabf-ebd164b06fea" />
+  <img width="350" height="700" alt="image" src="https://github.com/user-attachments/assets/a7c6402e-c026-4770-8d41-8731ef5891a8" />
+  <img width="350" height="700" alt="image" src="https://github.com/user-attachments/assets/a1e8d6bb-165f-44e3-b180-5e15ec052e8f" />
 </div>
 
 ## 🛠️ Tech Stack
