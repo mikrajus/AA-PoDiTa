@@ -76,7 +76,9 @@ class _CustomTextFieldState extends State<CustomTextField> {
               suffixIcon: widget.isPassword
                   ? IconButton(
                       icon: Icon(
-                        _obscure ? Icons.visibility_off_rounded : Icons.visibility_rounded,
+                        _obscure
+                            ? Icons.visibility_off_rounded
+                            : Icons.visibility_rounded,
                         size: 20,
                         color: AppColors.textLight,
                       ),

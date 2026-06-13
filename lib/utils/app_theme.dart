@@ -3,36 +3,40 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class AppColors {
-  static const Color pink     = Color(0xFFFDC2BE);
+  static const Color pink = Color(0xFFFDC2BE);
   static const Color pinkDark = Color(0xFFD4706A);
   static const Color pinkPale = Color(0xFFFFF0EE);
-  static const Color blue     = Color(0xFFC0E3DD);
+  static const Color blue = Color(0xFFC0E3DD);
   static const Color blueDark = Color(0xFF3A9E8F);
   static const Color bluePale = Color(0xFFEAF6F4);
-  static const Color white      = Color(0xFFFFFFFF);
+  static const Color white = Color(0xFFFFFFFF);
   static const Color background = Color(0xFFF8FAFB);
-  static const Color textDark   = Color(0xFF1A1A2E);
+  static const Color textDark = Color(0xFF1A1A2E);
   static const Color textMedium = Color(0xFF64748B);
-  static const Color textLight  = Color(0xFF94A3B8);
-  static const Color success    = Color(0xFF22C55E);
-  static const Color error      = Color(0xFFEF4444);
+  static const Color textLight = Color(0xFF94A3B8);
+  static const Color success = Color(0xFF22C55E);
+  static const Color error = Color(0xFFEF4444);
   static const Color cardBorder = Color(0xFFE2E8F0);
-  static const Color divider    = Color(0xFFF1F5F9);
+  static const Color divider = Color(0xFFF1F5F9);
 
   static const Color kepalaHeader = Color(0xFFC0E3DD);
-  static const Color kaderHeader  = Color(0xFFFDC2BE);
+  static const Color kaderHeader = Color(0xFFFDC2BE);
 
   // Solid "gradient" aliases agar kode lama tetap compile
   static const LinearGradient kepalaGradient = LinearGradient(
-    colors: [Color(0xFFC0E3DD), Color(0xFFC0E3DD)],
+    colors: [Color(0xFF3A9E8F), Color(0xFFC0E3DD)],
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
   );
   static const LinearGradient kaderGradient = LinearGradient(
-    colors: [Color(0xFFFDC2BE), Color(0xFFFDC2BE)],
+    colors: [Color(0xFFD4706A), Color(0xFFFDC2BE)],
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
   );
   static const LinearGradient landingGradient = LinearGradient(
     begin: Alignment.topCenter,
     end: Alignment.bottomCenter,
-    colors: [Color(0xFFFFF0EE), Color(0xFFEAF6F4)],
+    colors: [Color(0xFFFFFFFF), Color(0xFFF8FAFB)],
   );
 }
 
@@ -48,6 +52,12 @@ class AppTheme {
       ),
       textTheme: GoogleFonts.poppinsTextTheme(),
       scaffoldBackgroundColor: AppColors.background,
+      pageTransitionsTheme: const PageTransitionsTheme(
+        builders: <TargetPlatform, PageTransitionsBuilder>{
+          TargetPlatform.android: FadeUpwardsPageTransitionsBuilder(),
+          TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
+        },
+      ),
       appBarTheme: AppBarTheme(
         backgroundColor: AppColors.white,
         elevation: 0,

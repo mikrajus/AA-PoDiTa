@@ -2,17 +2,21 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../utils/app_theme.dart';
+import '../shared/faq_screen.dart';
+import '../shared/tentang_kami_screen.dart';
 
 class ProfilKaderScreen extends StatelessWidget {
   final String namaKader;
-  final String namaPosyandu;
-  final String namaPuskesmas;
+  final String nik;
+  final String nomorHp;
+  final bool showBackButton;
 
   const ProfilKaderScreen({
     super.key,
     this.namaKader = '',
-    this.namaPosyandu = '',
-    this.namaPuskesmas = '',
+    this.nik = '',
+    this.nomorHp = '',
+    this.showBackButton = true,
   });
 
   @override
@@ -25,28 +29,35 @@ class ProfilKaderScreen extends StatelessWidget {
         automaticallyImplyLeading: false,
         toolbarHeight: 70,
         title: Row(children: [
-          GestureDetector(
-            onTap: () => Navigator.pop(context),
-            child: Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.35),
-                borderRadius: BorderRadius.circular(10),
+          if (showBackButton) ...[
+            GestureDetector(
+              onTap: () => Navigator.pop(context),
+              child: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.35),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(Icons.arrow_back_ios_new_rounded,
+                    color: AppColors.pinkDark, size: 18),
               ),
-              child: const Icon(Icons.arrow_back_ios_new_rounded,
-                  color: AppColors.pinkDark, size: 18),
             ),
-          ),
-          const SizedBox(width: 12),
-          Column(crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min, children: [
-            Text('Profil', style: GoogleFonts.poppins(
-                fontSize: 16, fontWeight: FontWeight.w700,
-                color: AppColors.pinkDark)),
-            Text('Informasi akun', style: GoogleFonts.poppins(
-                fontSize: 12,
-                color: AppColors.pinkDark.withOpacity(0.7))),
-          ]),
+            const SizedBox(width: 12),
+          ],
+          Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text('Profil',
+                    style: GoogleFonts.poppins(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.pinkDark)),
+                Text('Informasi akun',
+                    style: GoogleFonts.poppins(
+                        fontSize: 12,
+                        color: AppColors.pinkDark.withOpacity(0.7))),
+              ]),
         ]),
       ),
       body: SingleChildScrollView(
@@ -55,7 +66,8 @@ class ProfilKaderScreen extends StatelessWidget {
           const SizedBox(height: 10),
           // Avatar
           Container(
-            width: 90, height: 90,
+            width: 90,
+            height: 90,
             decoration: BoxDecoration(
               color: AppColors.pink,
               borderRadius: BorderRadius.circular(26),
@@ -67,7 +79,8 @@ class ProfilKaderScreen extends StatelessWidget {
           Text(
             namaKader.isEmpty ? 'Kader Posyandu' : namaKader,
             style: GoogleFonts.poppins(
-                fontSize: 18, fontWeight: FontWeight.w700,
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
                 color: AppColors.textDark),
           ),
           const SizedBox(height: 4),
@@ -80,7 +93,8 @@ class ProfilKaderScreen extends StatelessWidget {
             ),
             child: Text('Kader Posyandu',
                 style: GoogleFonts.poppins(
-                    fontSize: 12, fontWeight: FontWeight.w600,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
                     color: AppColors.pinkDark)),
           ),
           const SizedBox(height: 28),
@@ -95,21 +109,59 @@ class ProfilKaderScreen extends StatelessWidget {
               border: Border.all(color: AppColors.cardBorder),
             ),
             child: Column(children: [
-              _InfoRow(label: 'Nama Lengkap',
+              _InfoRow(
+                  label: 'Nama Lengkap',
                   value: namaKader.isEmpty ? '-' : namaKader,
                   icon: Icons.person_outline_rounded),
               _divider(),
-              _InfoRow(label: 'Posyandu',
-                  value: namaPosyandu.isEmpty ? '-' : namaPosyandu,
-                  icon: Icons.home_work_outlined),
-              _divider(),
-              _InfoRow(label: 'Puskesmas',
-                  value: namaPuskesmas.isEmpty ? '-' : namaPuskesmas,
-                  icon: Icons.local_hospital_outlined),
-              _divider(),
-              _InfoRow(label: 'Role',
-                  value: 'Kader Posyandu',
+              _InfoRow(
+                  label: 'NIK',
+                  value: nik.isEmpty ? '-' : nik,
                   icon: Icons.badge_outlined),
+              _divider(),
+              _InfoRow(
+                  label: 'Nomor HP',
+                  value: nomorHp.isEmpty ? '-' : nomorHp,
+                  icon: Icons.phone_android_rounded),
+              _divider(),
+              const _InfoRow(
+                  label: 'Role',
+                  value: 'Kader Posyandu',
+                  icon: Icons.assignment_ind_outlined),
+            ]),
+          ),
+          const SizedBox(height: 20),
+
+          // Menu Bantuan & Info
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            decoration: BoxDecoration(
+              color: AppColors.white,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: AppColors.cardBorder),
+            ),
+            child: Column(children: [
+              _ActionMenu(
+                icon: Icons.help_outline_rounded,
+                label: 'Tanya Jawab (FAQ)',
+                color: AppColors.pinkDark,
+                onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (_) => const FAQScreen(isKader: true))),
+              ),
+              _divider(),
+              _ActionMenu(
+                icon: Icons.info_outline_rounded,
+                label: 'Tentang Kami',
+                color: AppColors.pinkDark,
+                onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (_) =>
+                            const TentangKamiScreen(isKader: true))),
+              ),
             ]),
           ),
           const SizedBox(height: 20),
@@ -130,7 +182,8 @@ class ProfilKaderScreen extends StatelessWidget {
                     TextButton(
                       onPressed: () => Navigator.pop(context),
                       child: Text('Batal',
-                          style: GoogleFonts.poppins(color: AppColors.textMedium)),
+                          style:
+                              GoogleFonts.poppins(color: AppColors.textMedium)),
                     ),
                     TextButton(
                       onPressed: () {
@@ -147,19 +200,22 @@ class ProfilKaderScreen extends StatelessWidget {
               );
             },
             child: Container(
-              width: double.infinity, height: 52,
+              width: double.infinity,
+              height: 52,
               decoration: BoxDecoration(
                 color: AppColors.pinkPale,
                 borderRadius: BorderRadius.circular(14),
                 border: Border.all(color: AppColors.pink),
               ),
-              child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+              child:
+                  Row(mainAxisAlignment: MainAxisAlignment.center, children: [
                 const Icon(Icons.logout_rounded,
                     color: AppColors.pinkDark, size: 20),
                 const SizedBox(width: 8),
                 Text('Keluar dari Akun',
                     style: GoogleFonts.poppins(
-                        fontSize: 14, fontWeight: FontWeight.w600,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
                         color: AppColors.pinkDark)),
               ]),
             ),
@@ -171,32 +227,77 @@ class ProfilKaderScreen extends StatelessWidget {
   }
 
   Widget _divider() => const Padding(
-    padding: EdgeInsets.symmetric(vertical: 12),
-    child: Divider(height: 1, color: AppColors.divider),
-  );
+        padding: EdgeInsets.symmetric(vertical: 12),
+        child: Divider(height: 1, color: AppColors.divider),
+      );
 }
 
 class _InfoRow extends StatelessWidget {
   final String label, value;
   final IconData icon;
-  const _InfoRow({required this.label, required this.value, required this.icon});
+  const _InfoRow(
+      {required this.label, required this.value, required this.icon});
 
   @override
   Widget build(BuildContext context) => Row(children: [
-    Container(
-      padding: const EdgeInsets.all(8),
-      decoration: BoxDecoration(
-        color: AppColors.pinkPale,
-        borderRadius: BorderRadius.circular(10),
+        Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: AppColors.pinkPale,
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Icon(icon, size: 18, color: AppColors.pinkDark),
+        ),
+        const SizedBox(width: 14),
+        Expanded(
+            child:
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text(label,
+              style: GoogleFonts.poppins(
+                  fontSize: 11, color: AppColors.textLight)),
+          Text(value,
+              style: GoogleFonts.poppins(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textDark)),
+        ])),
+      ]);
+}
+
+class _ActionMenu extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final Color color;
+  final VoidCallback onTap;
+
+  const _ActionMenu(
+      {required this.icon,
+      required this.label,
+      required this.color,
+      required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        child: Row(
+          children: [
+            Icon(icon, color: color, size: 22),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Text(label,
+                  style: GoogleFonts.poppins(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                      color: AppColors.textDark)),
+            ),
+            const Icon(Icons.arrow_forward_ios_rounded,
+                color: AppColors.textLight, size: 14),
+          ],
+        ),
       ),
-      child: Icon(icon, size: 18, color: AppColors.pinkDark),
-    ),
-    const SizedBox(width: 14),
-    Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Text(label, style: GoogleFonts.poppins(
-          fontSize: 11, color: AppColors.textLight)),
-      Text(value, style: GoogleFonts.poppins(
-          fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textDark)),
-    ])),
-  ]);
+    );
+  }
 }

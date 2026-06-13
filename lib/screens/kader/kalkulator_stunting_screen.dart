@@ -14,17 +14,17 @@ class KalkulatorStuntingScreen extends StatefulWidget {
 }
 
 class _KalkulatorStuntingScreenState extends State<KalkulatorStuntingScreen> {
-  final _formKey   = GlobalKey<FormState>();
-  final _bbCtrl    = TextEditingController();
-  final _tbCtrl    = TextEditingController();
-  final _umurCtrl  = TextEditingController();
-  final _tglCtrl   = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
+  final _bbCtrl = TextEditingController();
+  final _tbCtrl = TextEditingController();
+  final _umurCtrl = TextEditingController();
+  final _tglCtrl = TextEditingController();
 
   String _jenisKelamin = 'Laki-laki';
   BayiModel? _bayiDipilih;
   bool _sudahHitung = false;
-  bool _isLoading   = false;
-  bool _modePilihBayi = false; // toggle pilih bayi atau input manual
+  bool _isLoading = false;
+  final bool _modePilihBayi = false; // toggle pilih bayi atau input manual
 
   // Hasil
   double _zScoreBBU = 0;
@@ -34,8 +34,10 @@ class _KalkulatorStuntingScreenState extends State<KalkulatorStuntingScreen> {
 
   @override
   void dispose() {
-    _bbCtrl.dispose(); _tbCtrl.dispose();
-    _umurCtrl.dispose(); _tglCtrl.dispose();
+    _bbCtrl.dispose();
+    _tbCtrl.dispose();
+    _umurCtrl.dispose();
+    _tglCtrl.dispose();
     super.dispose();
   }
 
@@ -44,7 +46,7 @@ class _KalkulatorStuntingScreenState extends State<KalkulatorStuntingScreen> {
       _bayiDipilih = bayi;
       _jenisKelamin = bayi.jenisKelamin;
       _umurCtrl.text = '${bayi.umurBulan}';
-      _bbCtrl.text = bayi.beratBadan.toString();
+      _bbCtrl.text = (bayi.beratBadan * 1000).toInt().toString();
       _tbCtrl.text = bayi.tinggiBadan.toString();
       _sudahHitung = false;
     });
@@ -67,16 +69,18 @@ class _KalkulatorStuntingScreenState extends State<KalkulatorStuntingScreen> {
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
       builder: (_) => Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           Padding(
             padding: const EdgeInsets.all(16),
             child: Row(children: [
-              Text('Pilih Bayi', style: GoogleFonts.poppins(
-                  fontSize: 15, fontWeight: FontWeight.w700,
-                  color: AppColors.textDark)),
+              Text('Pilih Bayi',
+                  style: GoogleFonts.poppins(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.textDark)),
               const Spacer(),
               GestureDetector(
                 onTap: () => Navigator.pop(context),
@@ -87,27 +91,32 @@ class _KalkulatorStuntingScreenState extends State<KalkulatorStuntingScreen> {
           ),
           const Divider(height: 1),
           ...data.map((bayi) => ListTile(
-            leading: Container(
-              width: 40, height: 40,
-              decoration: BoxDecoration(
-                color: bayi.jenisKelamin.toLowerCase().contains('laki')
-                    ? AppColors.blue : AppColors.pink,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(
-                bayi.jenisKelamin.toLowerCase().contains('laki')
-                    ? Icons.boy_rounded : Icons.girl_rounded,
-                color: bayi.jenisKelamin.toLowerCase().contains('laki')
-                    ? AppColors.blueDark : AppColors.pinkDark,
-                size: 22,
-              ),
-            ),
-            title: Text(bayi.namaBayi, style: GoogleFonts.poppins(
-                fontSize: 13, fontWeight: FontWeight.w600)),
-            subtitle: Text('${bayi.umurBulan} bulan · ${bayi.jenisKelamin}',
-                style: GoogleFonts.poppins(fontSize: 11)),
-            onTap: () => _pilihBayi(bayi),
-          )),
+                leading: Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: bayi.jenisKelamin.toLowerCase().contains('laki')
+                        ? AppColors.blue
+                        : AppColors.pink,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(
+                    bayi.jenisKelamin.toLowerCase().contains('laki')
+                        ? Icons.boy_rounded
+                        : Icons.girl_rounded,
+                    color: bayi.jenisKelamin.toLowerCase().contains('laki')
+                        ? AppColors.blueDark
+                        : AppColors.pinkDark,
+                    size: 22,
+                  ),
+                ),
+                title: Text(bayi.namaBayi,
+                    style: GoogleFonts.poppins(
+                        fontSize: 13, fontWeight: FontWeight.w600)),
+                subtitle: Text('${bayi.umurBulan} bulan · ${bayi.jenisKelamin}',
+                    style: GoogleFonts.poppins(fontSize: 11)),
+                onTap: () => _pilihBayi(bayi),
+              )),
           const SizedBox(height: 16),
         ],
       ),
@@ -120,8 +129,8 @@ class _KalkulatorStuntingScreenState extends State<KalkulatorStuntingScreen> {
 
     Future.delayed(const Duration(milliseconds: 400), () {
       final umur = int.tryParse(_umurCtrl.text) ?? 0;
-      final bb   = double.tryParse(_bbCtrl.text) ?? 0;
-      final tb   = double.tryParse(_tbCtrl.text) ?? 0;
+      final bb = (double.tryParse(_bbCtrl.text) ?? 0) / 1000.0;
+      final tb = double.tryParse(_tbCtrl.text) ?? 0;
 
       final hasil = BayiService().kalkulasiStunting(
         umurBulan: umur,
@@ -161,20 +170,21 @@ class _KalkulatorStuntingScreenState extends State<KalkulatorStuntingScreen> {
       context: context,
       builder: (_) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Text('Simpan Pemeriksaan?', style: GoogleFonts.poppins(
-            fontWeight: FontWeight.w700)),
+        title: Text('Simpan Pemeriksaan?',
+            style: GoogleFonts.poppins(fontWeight: FontWeight.w700)),
         content: Text(
-          'Hasil ini akan disimpan sebagai pemeriksaan baru untuk ${_bayiDipilih!.namaBayi}.',
-          style: GoogleFonts.poppins(fontSize: 14)),
+            'Hasil ini akan disimpan sebagai pemeriksaan baru untuk ${_bayiDipilih!.namaBayi}.',
+            style: GoogleFonts.poppins(fontSize: 14)),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: Text('Batal', style: GoogleFonts.poppins(
-                color: AppColors.textMedium))),
+              onPressed: () => Navigator.pop(context, false),
+              child: Text('Batal',
+                  style: GoogleFonts.poppins(color: AppColors.textMedium))),
           TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: Text('Simpan', style: GoogleFonts.poppins(
-                color: AppColors.pinkDark, fontWeight: FontWeight.w600))),
+              onPressed: () => Navigator.pop(context, true),
+              child: Text('Simpan',
+                  style: GoogleFonts.poppins(
+                      color: AppColors.pinkDark, fontWeight: FontWeight.w600))),
         ],
       ),
     );
@@ -184,7 +194,7 @@ class _KalkulatorStuntingScreenState extends State<KalkulatorStuntingScreen> {
     BayiService().updatePemeriksaan(
       _bayiDipilih!.id,
       tanggalPemeriksaan: tgl,
-      beratBadan: double.tryParse(_bbCtrl.text) ?? _bayiDipilih!.beratBadan,
+      beratBadan: (double.tryParse(_bbCtrl.text) ?? 0) / 1000.0,
       tinggiBadan: double.tryParse(_tbCtrl.text) ?? _bayiDipilih!.tinggiBadan,
     );
 
@@ -201,15 +211,17 @@ class _KalkulatorStuntingScreenState extends State<KalkulatorStuntingScreen> {
   }
 
   Color get _statusStuntingColor {
-    if (_statusStunting.contains('Sangat')) return const Color(0xFFE53935);
-    if (_statusStunting.contains('Pendek')) return const Color(0xFFE57373);
+    final s = _statusStunting.toLowerCase();
+    if (s.contains('sangat pendek')) return const Color(0xFFE53935);
+    if (s.contains('pendek')) return Colors.orange;
     return AppColors.success;
   }
 
   Color get _statusGiziColor {
-    if (_statusGizi.contains('Sangat')) return const Color(0xFFE53935);
-    if (_statusGizi.contains('Kurang')) return const Color(0xFFE57373);
-    if (_statusGizi.contains('Risiko')) return Colors.orange;
+    final s = _statusGizi.toLowerCase();
+    if (s.contains('sangat kurang')) return const Color(0xFFE53935);
+    if (s.contains('kurang')) return Colors.orange;
+    if (s.contains('lebih')) return Colors.orange;
     return AppColors.success;
   }
 
@@ -221,7 +233,7 @@ class _KalkulatorStuntingScreenState extends State<KalkulatorStuntingScreen> {
       lastDate: DateTime.now(),
       builder: (ctx, child) => Theme(
         data: Theme.of(ctx).copyWith(
-          colorScheme: ColorScheme.light(primary: AppColors.pinkDark),
+          colorScheme: const ColorScheme.light(primary: AppColors.pinkDark),
         ),
         child: child!,
       ),
@@ -257,15 +269,20 @@ class _KalkulatorStuntingScreenState extends State<KalkulatorStuntingScreen> {
             ),
           ),
           const SizedBox(width: 12),
-          Column(crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min, children: [
-            Text('Kalkulator Stunting', style: GoogleFonts.poppins(
-                fontSize: 16, fontWeight: FontWeight.w700,
-                color: AppColors.pinkDark)),
-            Text('BB/U & TB/U · PMK No.2 Tahun 2020',
-                style: GoogleFonts.poppins(
-                    fontSize: 11, color: AppColors.pinkDark.withOpacity(0.7))),
-          ]),
+          Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text('Kalkulator Stunting',
+                    style: GoogleFonts.poppins(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.pinkDark)),
+                Text('BB/U & TB/U · PMK No.2 Tahun 2020',
+                    style: GoogleFonts.poppins(
+                        fontSize: 11,
+                        color: AppColors.pinkDark.withOpacity(0.7))),
+              ]),
         ]),
       ),
       body: SingleChildScrollView(
@@ -283,7 +300,8 @@ class _KalkulatorStuntingScreenState extends State<KalkulatorStuntingScreen> {
               const Icon(Icons.info_outline_rounded,
                   size: 18, color: AppColors.blueDark),
               const SizedBox(width: 10),
-              Expanded(child: Text(
+              Expanded(
+                  child: Text(
                 'Menghitung BB/U (Status Gizi) dan TB/U (Status Stunting) berdasarkan PMK No.2 Tahun 2020.',
                 style: GoogleFonts.poppins(
                     fontSize: 12, color: AppColors.blueDark, height: 1.4),
@@ -301,10 +319,13 @@ class _KalkulatorStuntingScreenState extends State<KalkulatorStuntingScreen> {
               borderRadius: BorderRadius.circular(16),
               border: Border.all(color: AppColors.cardBorder),
             ),
-            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text('Pilih Bayi (Opsional)', style: GoogleFonts.poppins(
-                  fontSize: 13, fontWeight: FontWeight.w600,
-                  color: AppColors.textDark)),
+            child:
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text('Pilih Bayi (Opsional)',
+                  style: GoogleFonts.poppins(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textDark)),
               const SizedBox(height: 4),
               Text('Pilih bayi terdaftar untuk simpan hasil otomatis',
                   style: GoogleFonts.poppins(
@@ -313,26 +334,29 @@ class _KalkulatorStuntingScreenState extends State<KalkulatorStuntingScreen> {
               GestureDetector(
                 onTap: _showPilihBayi,
                 child: Container(
-                  width: double.infinity, height: 46,
+                  width: double.infinity,
+                  height: 46,
                   decoration: BoxDecoration(
                     color: AppColors.pinkPale,
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(color: AppColors.pink),
                   ),
                   child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center, children: [
-                    const Icon(Icons.person_search_rounded,
-                        color: AppColors.pinkDark, size: 18),
-                    const SizedBox(width: 8),
-                    Text(
-                      _bayiDipilih == null
-                          ? 'Pilih dari daftar bayi'
-                          : _bayiDipilih!.namaBayi,
-                      style: GoogleFonts.poppins(
-                          fontSize: 13, fontWeight: FontWeight.w600,
-                          color: AppColors.pinkDark),
-                    ),
-                  ]),
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.person_search_rounded,
+                            color: AppColors.pinkDark, size: 18),
+                        const SizedBox(width: 8),
+                        Text(
+                          _bayiDipilih == null
+                              ? 'Pilih dari daftar bayi'
+                              : _bayiDipilih!.namaBayi,
+                          style: GoogleFonts.poppins(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.pinkDark),
+                        ),
+                      ]),
                 ),
               ),
               if (_bayiDipilih != null) ...[
@@ -348,7 +372,8 @@ class _KalkulatorStuntingScreenState extends State<KalkulatorStuntingScreen> {
                   }),
                   child: Text('Hapus pilihan',
                       style: GoogleFonts.poppins(
-                          fontSize: 11, color: AppColors.textMedium,
+                          fontSize: 11,
+                          color: AppColors.textMedium,
                           decoration: TextDecoration.underline)),
                 ),
               ],
@@ -383,13 +408,16 @@ class _KalkulatorStuntingScreenState extends State<KalkulatorStuntingScreen> {
                       isExpanded: true,
                       style: GoogleFonts.poppins(
                           fontSize: 14, color: AppColors.textDark),
-                      items: ['Laki-laki', 'Perempuan'].map((v) =>
-                          DropdownMenuItem(value: v, child: Text(v))).toList(),
-                      onChanged: _bayiDipilih != null ? null : (v) =>
-                          setState(() {
-                            _jenisKelamin = v!;
-                            _sudahHitung = false;
-                          }),
+                      items: ['Laki-laki', 'Perempuan']
+                          .map(
+                              (v) => DropdownMenuItem(value: v, child: Text(v)))
+                          .toList(),
+                      onChanged: _bayiDipilih != null
+                          ? null
+                          : (v) => setState(() {
+                                _jenisKelamin = v!;
+                                _sudahHitung = false;
+                              }),
                     ),
                   ),
                 ),
@@ -401,16 +429,19 @@ class _KalkulatorStuntingScreenState extends State<KalkulatorStuntingScreen> {
                 TextFormField(
                   controller: _umurCtrl,
                   readOnly: _bayiDipilih != null,
-                  style: GoogleFonts.poppins(fontSize: 14,
+                  style: GoogleFonts.poppins(
+                      fontSize: 14,
                       color: _bayiDipilih != null
-                          ? AppColors.textMedium : AppColors.textDark),
+                          ? AppColors.textMedium
+                          : AppColors.textDark),
                   keyboardType: TextInputType.number,
                   inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                   decoration: InputDecoration(
                     hintText: 'Contoh: 26',
                     filled: _bayiDipilih != null,
                     fillColor: _bayiDipilih != null
-                        ? const Color(0xFFF1F5F9) : AppColors.white,
+                        ? const Color(0xFFF1F5F9)
+                        : AppColors.white,
                   ),
                   onChanged: (_) => setState(() => _sudahHitung = false),
                   validator: (v) {
@@ -423,19 +454,21 @@ class _KalkulatorStuntingScreenState extends State<KalkulatorStuntingScreen> {
                 const SizedBox(height: 14),
 
                 // Berat badan
-                _label('Berat Badan (kg)'),
+                _label('Berat Badan (gram)'),
                 const SizedBox(height: 6),
                 TextFormField(
                   controller: _bbCtrl,
                   style: GoogleFonts.poppins(fontSize: 14),
-                  keyboardType: const TextInputType.numberWithOptions(
-                      decimal: true),
+                  keyboardType:
+                      const TextInputType.numberWithOptions(decimal: true),
                   inputFormatters: [
-                    FilteringTextInputFormatter.allow(RegExp(r'[\d.]'))],
-                  decoration: const InputDecoration(hintText: 'Contoh: 9.2'),
+                    FilteringTextInputFormatter.allow(RegExp(r'[\d.]'))
+                  ],
+                  decoration: const InputDecoration(hintText: 'Contoh: 9200'),
                   onChanged: (_) => setState(() => _sudahHitung = false),
                   validator: (v) => (v == null || v.isEmpty)
-                      ? 'Berat badan wajib diisi' : null,
+                      ? 'Berat badan wajib diisi'
+                      : null,
                 ),
                 const SizedBox(height: 14),
 
@@ -445,14 +478,16 @@ class _KalkulatorStuntingScreenState extends State<KalkulatorStuntingScreen> {
                 TextFormField(
                   controller: _tbCtrl,
                   style: GoogleFonts.poppins(fontSize: 14),
-                  keyboardType: const TextInputType.numberWithOptions(
-                      decimal: true),
+                  keyboardType:
+                      const TextInputType.numberWithOptions(decimal: true),
                   inputFormatters: [
-                    FilteringTextInputFormatter.allow(RegExp(r'[\d.]'))],
+                    FilteringTextInputFormatter.allow(RegExp(r'[\d.]'))
+                  ],
                   decoration: const InputDecoration(hintText: 'Contoh: 78.5'),
                   onChanged: (_) => setState(() => _sudahHitung = false),
                   validator: (v) => (v == null || v.isEmpty)
-                      ? 'Tinggi badan wajib diisi' : null,
+                      ? 'Tinggi badan wajib diisi'
+                      : null,
                 ),
                 const SizedBox(height: 20),
 
@@ -460,23 +495,28 @@ class _KalkulatorStuntingScreenState extends State<KalkulatorStuntingScreen> {
                 GestureDetector(
                   onTap: _isLoading ? null : _hitung,
                   child: Container(
-                    width: double.infinity, height: 50,
+                    width: double.infinity,
+                    height: 50,
                     decoration: BoxDecoration(
                       color: AppColors.blue,
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Center(
                       child: _isLoading
-                          ? const SizedBox(width: 20, height: 20,
+                          ? const SizedBox(
+                              width: 20,
+                              height: 20,
                               child: CircularProgressIndicator(
                                   color: AppColors.blueDark, strokeWidth: 2.5))
                           : Row(mainAxisSize: MainAxisSize.min, children: [
                               const Icon(Icons.calculate_rounded,
                                   color: AppColors.blueDark, size: 20),
                               const SizedBox(width: 8),
-                              Text('Hitung Status', style: GoogleFonts.poppins(
-                                  fontSize: 14, fontWeight: FontWeight.w600,
-                                  color: AppColors.blueDark)),
+                              Text('Hitung Status',
+                                  style: GoogleFonts.poppins(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w600,
+                                      color: AppColors.blueDark)),
                             ]),
                     ),
                   ),
@@ -497,9 +537,11 @@ class _KalkulatorStuntingScreenState extends State<KalkulatorStuntingScreen> {
                 border: Border.all(color: AppColors.cardBorder),
               ),
               child: Column(children: [
-                Text('Hasil Perhitungan', style: GoogleFonts.poppins(
-                    fontSize: 14, fontWeight: FontWeight.w700,
-                    color: AppColors.textDark)),
+                Text('Hasil Perhitungan',
+                    style: GoogleFonts.poppins(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.textDark)),
                 const SizedBox(height: 16),
 
                 // BB/U
@@ -531,19 +573,23 @@ class _KalkulatorStuntingScreenState extends State<KalkulatorStuntingScreen> {
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    Text('Rumus Z-Score TB/U:', style: GoogleFonts.poppins(
-                        fontSize: 11, fontWeight: FontWeight.w600,
-                        color: AppColors.textMedium)),
-                    const SizedBox(height: 4),
-                    Text(
-                      'Z = (TB anak − TB median) / (TB median − (−1SD))\n'
-                      'Z = ${_zScoreTBU.toStringAsFixed(2)} SD → $_statusStunting',
-                      style: GoogleFonts.poppins(
-                          fontSize: 11, color: AppColors.textMedium,
-                          height: 1.5),
-                    ),
-                  ]),
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Rumus Z-Score TB/U:',
+                            style: GoogleFonts.poppins(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.textMedium)),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Z = (TB anak − TB median) / (TB median − (−1SD))\n'
+                          'Z = ${_zScoreTBU.toStringAsFixed(2)} SD → $_statusStunting',
+                          style: GoogleFonts.poppins(
+                              fontSize: 11,
+                              color: AppColors.textMedium,
+                              height: 1.5),
+                        ),
+                      ]),
                 ),
 
                 // Tombol simpan jika ada bayi dipilih
@@ -554,18 +600,20 @@ class _KalkulatorStuntingScreenState extends State<KalkulatorStuntingScreen> {
                   Text('Simpan sebagai pemeriksaan baru untuk',
                       style: GoogleFonts.poppins(
                           fontSize: 12, color: AppColors.textMedium)),
-                  Text(_bayiDipilih!.namaBayi, style: GoogleFonts.poppins(
-                      fontSize: 14, fontWeight: FontWeight.w700,
-                      color: AppColors.textDark)),
+                  Text(_bayiDipilih!.namaBayi,
+                      style: GoogleFonts.poppins(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.textDark)),
                   const SizedBox(height: 12),
                   // Tanggal pemeriksaan
                   TextFormField(
                     controller: _tglCtrl,
                     readOnly: true,
                     style: GoogleFonts.poppins(fontSize: 14),
-                    decoration: InputDecoration(
+                    decoration: const InputDecoration(
                       hintText: 'Pilih tanggal pemeriksaan',
-                      suffixIcon: const Icon(Icons.calendar_today_rounded,
+                      suffixIcon: Icon(Icons.calendar_today_rounded,
                           size: 18, color: AppColors.textLight),
                     ),
                     onTap: _pilihTanggal,
@@ -574,7 +622,8 @@ class _KalkulatorStuntingScreenState extends State<KalkulatorStuntingScreen> {
                   GestureDetector(
                     onTap: _simpanKePemeriksaan,
                     child: Container(
-                      width: double.infinity, height: 50,
+                      width: double.infinity,
+                      height: 50,
                       decoration: BoxDecoration(
                         color: AppColors.pinkDark,
                         borderRadius: BorderRadius.circular(12),
@@ -582,14 +631,15 @@ class _KalkulatorStuntingScreenState extends State<KalkulatorStuntingScreen> {
                       child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                        const Icon(Icons.save_rounded,
-                            color: Colors.white, size: 18),
-                        const SizedBox(width: 8),
-                        Text('Simpan ke Riwayat Bayi',
-                            style: GoogleFonts.poppins(
-                                fontSize: 13, fontWeight: FontWeight.w600,
-                                color: Colors.white)),
-                      ]),
+                            const Icon(Icons.save_rounded,
+                                color: Colors.white, size: 18),
+                            const SizedBox(width: 8),
+                            Text('Simpan ke Riwayat Bayi',
+                                style: GoogleFonts.poppins(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.white)),
+                          ]),
                     ),
                   ),
                 ],
@@ -603,10 +653,13 @@ class _KalkulatorStuntingScreenState extends State<KalkulatorStuntingScreen> {
   }
 
   Widget _label(String text) => Align(
-    alignment: Alignment.centerLeft,
-    child: Text(text, style: GoogleFonts.poppins(
-        fontSize: 13, fontWeight: FontWeight.w500, color: AppColors.textDark)),
-  );
+        alignment: Alignment.centerLeft,
+        child: Text(text,
+            style: GoogleFonts.poppins(
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+                color: AppColors.textDark)),
+      );
 
   Widget _hasilCard({
     required String label,
@@ -633,16 +686,22 @@ class _KalkulatorStuntingScreenState extends State<KalkulatorStuntingScreen> {
             child: Icon(icon, color: color, size: 22),
           ),
           const SizedBox(width: 14),
-          Expanded(child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(label, style: GoogleFonts.poppins(
-                fontSize: 11, color: AppColors.textMedium)),
-            Text(status, style: GoogleFonts.poppins(
-                fontSize: 15, fontWeight: FontWeight.w800, color: color)),
-            Text('Z-Score: ${zScore.toStringAsFixed(2)} SD',
-                style: GoogleFonts.poppins(
-                    fontSize: 11, color: AppColors.textMedium)),
-          ])),
+          Expanded(
+              child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                Text(label,
+                    style: GoogleFonts.poppins(
+                        fontSize: 11, color: AppColors.textMedium)),
+                Text(status,
+                    style: GoogleFonts.poppins(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w800,
+                        color: color)),
+                Text('Z-Score: ${zScore.toStringAsFixed(2)} SD',
+                    style: GoogleFonts.poppins(
+                        fontSize: 11, color: AppColors.textMedium)),
+              ])),
         ]),
       );
 }

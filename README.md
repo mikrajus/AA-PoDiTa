@@ -1,144 +1,95 @@
-CLAUDE BUAT NI.
-ADA ZIP KUTARUH TU
+<div align="center">
+  <img src="assets/images/logo.png" alt="AA-PoDiTa Logo" width="120" />
+  
+  # AA-PoDiTa (Posyandu Digital Terpadu)
+  
+  **Aman Datanya, Aman Anaknya** <br>
+  *A comprehensive digital solution for Posyandu cadres and health workers to monitor, analyze, and manage toddler nutritional status effectively.*
 
-# AA-PoDiTa — Setup & Panduan Pengembang
-
-**Posyandu Digital Terpadu Bayi Balita**
-> *Aman Datanya, Aman Anaknya*
-
----
-
-## Struktur File (Auth Module)
-
-```
-lib/
-├── main.dart                          ← Entry point
-├── utils/
-│   ├── app_theme.dart                 ← Warna, tema, gradient
-│   └── app_constants.dart             ← Konstanta app & Firestore
-├── services/
-│   └── auth_service.dart              ← Register & Login (Firebase placeholder)
-├── widgets/
-│   ├── custom_text_field.dart         ← Input field reusable
-│   └── gradient_button.dart           ← Tombol gradient animasi
-└── screens/
-    └── auth/
-        ├── landing_screen.dart        ← Halaman awal (2 tombol masuk)
-        ├── login_kepala_screen.dart   ← Login Kepala Puskesmas
-        ├── login_kader_screen.dart    ← Login Kader Posyandu
-        ├── daftar_kepala_screen.dart  ← Daftar akun Kepala
-        └── daftar_kader_screen.dart   ← Daftar akun Kader
-```
+  [![Flutter](https://img.shields.io/badge/Flutter-%2302569B.svg?style=for-the-badge&logo=Flutter&logoColor=white)](https://flutter.dev)
+  [![Dart](https://img.shields.io/badge/dart-%230175C2.svg?style=for-the-badge&logo=dart&logoColor=white)](https://dart.dev)
+  [![Firebase](https://img.shields.io/badge/firebase-%23039BE5.svg?style=for-the-badge&logo=firebase)](https://firebase.google.com/)
+</div>
 
 ---
 
-## Alur Penggunaan
+## 📖 Overview
 
-```
-Landing → [Masuk sebagai Kepala] → LoginKepala → [Daftar] → DaftarKepala
-       ↘ [Masuk sebagai Kader]  → LoginKader  → [Daftar] → DaftarKader
-```
+**AA-PoDiTa** (Posyandu Digital Terpadu Bayi Balita) is an innovative mobile application designed to modernize the workflow of Posyandu (Integrated Healthcare Center) in Indonesia. By digitizing health records, the app enables Posyandu cadres and head health workers to actively prevent and monitor stunting in toddlers.
 
-**Alur Daftar:**
-1. Developer/operator input username ke Firestore collection `username_pool` (sebagai string/dokumen)
-2. User buka halaman Daftar, masukkan username tersebut
-3. User isi: Nama Lengkap, Password, Konfirmasi Password, NIK, Nomor HP
-4. Sistem verifikasi username ada di pool → buat akun Firebase Auth → simpan data ke Firestore
-5. User bisa login dengan username + password
+This application replaces the manual tracking system with a robust digital platform, offering real-time Z-Score calculations (based on WHO Growth Standards), automated graphical analysis, and secure medical history tracking.
 
-**Catatan:** User yang hanya punya username dari developer **belum bisa login** karena akun Firebase Auth belum dibuat. Akun terbentuk saat user mengisi form Daftar.
+## ✨ Key Features
 
----
+- **Automated Z-Score Calculation:** Instantly calculates the nutritional status of toddlers based on World Health Organization (WHO) standards.
+- **Interactive Growth Charts:** Visualizes weight and height progress over time to quickly identify stunting risks.
+- **Digital KIA Book:** A digital version of the Maternal and Child Health (KIA) book, securely storing medical histories and complaints.
+- **Dual Role System:** Dedicated interfaces and distinct functionalities for Posyandu Cadres (Data Entry) and Health Workers/Puskesmas Heads (Monitoring & Analysis).
+- **Excel Report Export:** Generate and export comprehensive medical records and growth data into Excel files with a single tap.
+- **Responsive UI/UX:** Built with a modern, glassmorphism-inspired design to ensure a smooth and premium user experience.
 
-## Setup Firebase
+## 📸 Screenshots
 
-### 1. Buat project Firebase
-- Buka [Firebase Console](https://console.firebase.google.com/)
-- Buat project baru
+*(To be added by repository owner - Showcase landing page, dashboard, and chart features here)*
 
-### 2. Tambahkan Android App
-- Package name: `com.yourcompany.aa_podita` (sesuaikan di `android/app/build.gradle`)
-- Download `google-services.json` → taruh di `android/app/`
+## 🛠️ Tech Stack
 
-### 3. Enable Firebase Services
-- **Authentication** → Sign-in method → Email/Password → Enable
-- **Firestore Database** → Create database (mode production/test)
+- **Framework:** [Flutter](https://flutter.dev/) (Dart)
+- **Backend/Auth:** Firebase Authentication & Cloud Firestore
+- **Local Storage:** Shared Preferences
+- **Data Export:** Syncfusion Flutter XlsIO
+- **Fonts & Icons:** Google Fonts (Poppins), FontAwesome
 
-### 4. Struktur Firestore yang Dibutuhkan
+## 🚀 Getting Started
 
-```
-username_pool/          ← Collection (developer isi manual)
-  └── {username}        ← Document ID = username yang diberikan ke user
-      └── role: "kader" | "kepala"
-      └── createdAt: timestamp
+Follow these instructions to get a copy of the project up and running on your local machine for development and testing purposes.
 
-kader/                  ← Collection akun kader
-  └── {uid}
-      ├── username: string
-      ├── namaLengkap: string
-      ├── nik: string
-      ├── nomorHp: string
-      ├── role: "kader"
-      └── createdAt: timestamp
+### Prerequisites
 
-kepala_puskesmas/       ← Collection akun kepala
-  └── {uid}
-      ├── username: string
-      ├── namaLengkap: string
-      ├── nik: string
-      ├── nomorHp: string
-      ├── role: "kepala"
-      └── createdAt: timestamp
-```
+- [Flutter SDK](https://docs.flutter.dev/get-started/install) (Version 3.x or higher)
+- [Dart SDK](https://dart.dev/get-dart)
+- IDE (VS Code, Android Studio, etc.)
+- A Firebase Project (for Auth & Firestore)
 
-### 5. Aktifkan Firebase di kode
+### Installation
 
-Di `main.dart`, uncomment:
-```dart
-import 'package:firebase_core/firebase_core.dart';
-// ...
-await Firebase.initializeApp();
-```
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/yourusername/AA-PoDiTa.git
+   cd AA-PoDiTa
+   ```
 
-Di `auth_service.dart`, uncomment semua blok `// TODO: Uncomment...`
+2. **Install dependencies:**
+   ```bash
+   flutter pub get
+   ```
 
----
+3. **Configure Firebase:**
+   - Create a project on [Firebase Console](https://console.firebase.google.com/).
+   - Add an Android App with the package name `com.yourcompany.aa_podita` (or modify `android/app/build.gradle` to match yours).
+   - Download the `google-services.json` file and place it in the `android/app/` directory.
+   - Enable **Email/Password Authentication** and **Firestore Database**.
 
-## Logo
+4. **Run the application:**
+   ```bash
+   flutter run
+   ```
 
-Taruh file `logo.png` di `assets/images/logo.png`
+## 🏗️ Architecture & Security
 
-Di `landing_screen.dart`, ganti widget `_LogoPlaceholder()` dengan:
-```dart
-child: Image.asset(
-  'assets/images/logo.png',
-  fit: BoxFit.contain,
-),
-```
+- **Role-Based Access Control (RBAC):** Users must be registered by a system administrator into the `username_pool` collection before they can create a Firebase Auth account, ensuring strict access control.
+- **Data Privacy:** Sensitive child health data is secured within Firestore rules and only accessible to authorized healthcare personnel.
+
+## 🤝 Contributing
+
+Contributions, issues, and feature requests are welcome! Feel free to check the [issues page](https://github.com/yourusername/AA-PoDiTa/issues).
+
+## 📄 License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
 
 ---
 
-## Dependencies
-
-```yaml
-firebase_core: ^2.24.2
-firebase_auth: ^4.15.3
-cloud_firestore: ^4.13.6
-google_fonts: ^6.1.0
-flutter_svg: ^2.0.9
-shared_preferences: ^2.2.2
-intl: ^0.18.1
-```
-
-Jalankan: `flutter pub get`
-
----
-
-## Warna Utama
-
-| Elemen | Warna |
-|--------|-------|
-| Pink (Kader) | `#FF6B9D` |
-| Biru (Kepala) | `#0288D1` |
-| Background | `#F8FAFB` |
-| Teks Utama | `#1A1A2E` |
+<div align="center">
+  <i>Developed with ❤️ for a healthier future.</i>
+</div>

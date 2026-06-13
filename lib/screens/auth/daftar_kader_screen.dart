@@ -14,20 +14,23 @@ class DaftarKaderScreen extends StatefulWidget {
 }
 
 class _DaftarKaderScreenState extends State<DaftarKaderScreen> {
-  final _formKey      = GlobalKey<FormState>();
+  final _formKey = GlobalKey<FormState>();
   final _usernameCtrl = TextEditingController();
-  final _namaCtrl     = TextEditingController();
+  final _namaCtrl = TextEditingController();
   final _passwordCtrl = TextEditingController();
-  final _confirmCtrl  = TextEditingController();
-  final _nikCtrl      = TextEditingController();
-  final _hpCtrl       = TextEditingController();
+  final _confirmCtrl = TextEditingController();
+  final _nikCtrl = TextEditingController();
+  final _hpCtrl = TextEditingController();
   bool _isLoading = false;
 
   @override
   void dispose() {
-    _usernameCtrl.dispose(); _namaCtrl.dispose();
-    _passwordCtrl.dispose(); _confirmCtrl.dispose();
-    _nikCtrl.dispose();      _hpCtrl.dispose();
+    _usernameCtrl.dispose();
+    _namaCtrl.dispose();
+    _passwordCtrl.dispose();
+    _confirmCtrl.dispose();
+    _nikCtrl.dispose();
+    _hpCtrl.dispose();
     super.dispose();
   }
 
@@ -66,17 +69,18 @@ class _DaftarKaderScreenState extends State<DaftarKaderScreen> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         content: Column(mainAxisSize: MainAxisSize.min, children: [
           Container(
-            width: 64, height: 64,
+            width: 64,
+            height: 64,
             decoration: BoxDecoration(
-                color: AppColors.pink,
-                borderRadius: BorderRadius.circular(18)),
+                color: AppColors.pink, borderRadius: BorderRadius.circular(18)),
             child: const Icon(Icons.check_rounded,
                 color: AppColors.pinkDark, size: 34),
           ),
           const SizedBox(height: 16),
           Text('Pendaftaran Berhasil!',
               style: GoogleFonts.poppins(
-                  fontSize: 17, fontWeight: FontWeight.w700,
+                  fontSize: 17,
+                  fontWeight: FontWeight.w700,
                   color: AppColors.textDark)),
           const SizedBox(height: 8),
           Text('Akun Kader Posyandu Anda telah dibuat. Silakan masuk.',
@@ -141,150 +145,167 @@ class _DaftarKaderScreenState extends State<DaftarKaderScreen> {
           ],
         ),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Info box
-              Container(
-                padding: const EdgeInsets.all(14),
-                decoration: BoxDecoration(
-                  color: AppColors.pinkPale,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppColors.pink),
+      body: Container(
+        width: double.infinity,
+        height: double.infinity,
+        decoration: const BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage('assets/images/header_bg.png'),
+            fit: BoxFit.cover,
+          ),
+        ),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(20),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Info box
+                Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: AppColors.pinkPale,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: AppColors.pink),
+                  ),
+                  child: Row(children: [
+                    const Icon(Icons.info_outline_rounded,
+                        size: 18, color: AppColors.pinkDark),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        'Username diberikan oleh operator. Pastikan username yang Anda masukkan benar.',
+                        style: GoogleFonts.poppins(
+                            fontSize: 12,
+                            color: AppColors.pinkDark,
+                            height: 1.5),
+                      ),
+                    ),
+                  ]),
                 ),
-                child: Row(children: [
-                  const Icon(Icons.info_outline_rounded,
-                      size: 18, color: AppColors.pinkDark),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Text(
-                      'Username diberikan oleh operator. Pastikan username yang Anda masukkan benar.',
-                      style: GoogleFonts.poppins(
-                          fontSize: 12, color: AppColors.pinkDark, height: 1.5),
+                const SizedBox(height: 20),
+
+                const _SectionLabel(
+                    label: 'Data Akun', icon: Icons.manage_accounts_rounded),
+                const SizedBox(height: 14),
+
+                CustomTextField(
+                  label: 'Username (dari operator)',
+                  hint: 'Masukkan username yang diberikan',
+                  prefixIcon: Icons.badge_outlined,
+                  controller: _usernameCtrl,
+                  validator: (v) => (v == null || v.trim().isEmpty)
+                      ? 'Username wajib diisi'
+                      : null,
+                ),
+                const SizedBox(height: 14),
+                CustomTextField(
+                  label: 'Nama Lengkap',
+                  hint: 'Nama lengkap sesuai identitas',
+                  prefixIcon: Icons.person_outline_rounded,
+                  controller: _namaCtrl,
+                  validator: (v) => (v == null || v.trim().isEmpty)
+                      ? 'Nama wajib diisi'
+                      : null,
+                ),
+                const SizedBox(height: 14),
+                CustomTextField(
+                  label: 'Password',
+                  hint: 'Buat password (min. 6 karakter)',
+                  prefixIcon: Icons.lock_outline_rounded,
+                  isPassword: true,
+                  controller: _passwordCtrl,
+                  validator: (v) {
+                    if (v == null || v.isEmpty) return 'Password wajib diisi';
+                    if (v.length < 6) return 'Password minimal 6 karakter';
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 14),
+                CustomTextField(
+                  label: 'Konfirmasi Password',
+                  hint: 'Ulangi password',
+                  prefixIcon: Icons.lock_outline_rounded,
+                  isPassword: true,
+                  controller: _confirmCtrl,
+                  validator: (v) {
+                    if (v == null || v.isEmpty)
+                      return 'Konfirmasi password wajib';
+                    if (v != _passwordCtrl.text) return 'Password tidak cocok';
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 20),
+
+                const _SectionLabel(
+                    label: 'Data Identitas', icon: Icons.credit_card_rounded),
+                const SizedBox(height: 14),
+
+                CustomTextField(
+                  label: 'NIK',
+                  hint: '16 digit nomor NIK',
+                  prefixIcon: Icons.fingerprint_rounded,
+                  controller: _nikCtrl,
+                  keyboardType: TextInputType.number,
+                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                  maxLength: 16,
+                  validator: (v) {
+                    if (v == null || v.isEmpty) return 'NIK wajib diisi';
+                    if (v.length != 16) return 'NIK harus 16 digit';
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 14),
+                CustomTextField(
+                  label: 'Nomor HP',
+                  hint: 'Contoh: 08123456789',
+                  prefixIcon: Icons.phone_android_rounded,
+                  controller: _hpCtrl,
+                  keyboardType: TextInputType.phone,
+                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                  maxLength: 13,
+                  validator: (v) {
+                    if (v == null || v.isEmpty) return 'Nomor HP wajib diisi';
+                    if (v.length < 10) return 'Nomor HP tidak valid';
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 28),
+
+                GradientButton(
+                  text: 'Daftar Sekarang',
+                  gradient: AppColors.kaderGradient,
+                  isLoading: _isLoading,
+                  onPressed: _isLoading ? null : _daftar,
+                  icon: Icons.how_to_reg_rounded,
+                  textColor: AppColors.pinkDark,
+                ),
+                const SizedBox(height: 16),
+
+                Center(
+                  child: GestureDetector(
+                    onTap: () => Navigator.pop(context),
+                    child: RichText(
+                      text: TextSpan(
+                        style: GoogleFonts.poppins(fontSize: 13),
+                        children: const [
+                          TextSpan(
+                              text: 'Sudah punya akun? ',
+                              style: TextStyle(color: AppColors.textMedium)),
+                          TextSpan(
+                              text: 'Masuk',
+                              style: TextStyle(
+                                  color: AppColors.pinkDark,
+                                  fontWeight: FontWeight.w600)),
+                        ],
+                      ),
                     ),
                   ),
-                ]),
-              ),
-              const SizedBox(height: 20),
-
-              _SectionLabel(label: 'Data Akun', icon: Icons.manage_accounts_rounded),
-              const SizedBox(height: 14),
-
-              CustomTextField(
-                label: 'Username (dari operator)',
-                hint: 'Masukkan username yang diberikan',
-                prefixIcon: Icons.badge_outlined,
-                controller: _usernameCtrl,
-                validator: (v) => (v == null || v.trim().isEmpty)
-                    ? 'Username wajib diisi' : null,
-              ),
-              const SizedBox(height: 14),
-              CustomTextField(
-                label: 'Nama Lengkap',
-                hint: 'Nama lengkap sesuai identitas',
-                prefixIcon: Icons.person_outline_rounded,
-                controller: _namaCtrl,
-                validator: (v) => (v == null || v.trim().isEmpty)
-                    ? 'Nama wajib diisi' : null,
-              ),
-              const SizedBox(height: 14),
-              CustomTextField(
-                label: 'Password',
-                hint: 'Buat password (min. 6 karakter)',
-                prefixIcon: Icons.lock_outline_rounded,
-                isPassword: true,
-                controller: _passwordCtrl,
-                validator: (v) {
-                  if (v == null || v.isEmpty) return 'Password wajib diisi';
-                  if (v.length < 6) return 'Password minimal 6 karakter';
-                  return null;
-                },
-              ),
-              const SizedBox(height: 14),
-              CustomTextField(
-                label: 'Konfirmasi Password',
-                hint: 'Ulangi password',
-                prefixIcon: Icons.lock_outline_rounded,
-                isPassword: true,
-                controller: _confirmCtrl,
-                validator: (v) {
-                  if (v == null || v.isEmpty) return 'Konfirmasi password wajib';
-                  if (v != _passwordCtrl.text) return 'Password tidak cocok';
-                  return null;
-                },
-              ),
-              const SizedBox(height: 20),
-
-              _SectionLabel(label: 'Data Identitas', icon: Icons.credit_card_rounded),
-              const SizedBox(height: 14),
-
-              CustomTextField(
-                label: 'NIK',
-                hint: '16 digit nomor NIK',
-                prefixIcon: Icons.fingerprint_rounded,
-                controller: _nikCtrl,
-                keyboardType: TextInputType.number,
-                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                maxLength: 16,
-                validator: (v) {
-                  if (v == null || v.isEmpty) return 'NIK wajib diisi';
-                  if (v.length != 16) return 'NIK harus 16 digit';
-                  return null;
-                },
-              ),
-              const SizedBox(height: 14),
-              CustomTextField(
-                label: 'Nomor HP',
-                hint: 'Contoh: 08123456789',
-                prefixIcon: Icons.phone_android_rounded,
-                controller: _hpCtrl,
-                keyboardType: TextInputType.phone,
-                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                maxLength: 13,
-                validator: (v) {
-                  if (v == null || v.isEmpty) return 'Nomor HP wajib diisi';
-                  if (v.length < 10) return 'Nomor HP tidak valid';
-                  return null;
-                },
-              ),
-              const SizedBox(height: 28),
-
-              GradientButton(
-                text: 'Daftar Sekarang',
-                gradient: AppColors.kaderGradient,
-                isLoading: _isLoading,
-                onPressed: _isLoading ? null : _daftar,
-                icon: Icons.how_to_reg_rounded,
-                textColor: AppColors.pinkDark,
-              ),
-              const SizedBox(height: 16),
-
-              Center(
-                child: GestureDetector(
-                  onTap: () => Navigator.pop(context),
-                  child: RichText(
-                    text: TextSpan(
-                      style: GoogleFonts.poppins(fontSize: 13),
-                      children: [
-                        const TextSpan(
-                            text: 'Sudah punya akun? ',
-                            style: TextStyle(color: AppColors.textMedium)),
-                        TextSpan(
-                            text: 'Masuk',
-                            style: TextStyle(
-                                color: AppColors.pinkDark,
-                                fontWeight: FontWeight.w600)),
-                      ],
-                    ),
-                  ),
                 ),
-              ),
-              const SizedBox(height: 30),
-            ],
+                const SizedBox(height: 30),
+              ],
+            ),
           ),
         ),
       ),
@@ -293,14 +314,18 @@ class _DaftarKaderScreenState extends State<DaftarKaderScreen> {
 }
 
 class _SectionLabel extends StatelessWidget {
-  final String label; final IconData icon;
+  final String label;
+  final IconData icon;
   const _SectionLabel({required this.label, required this.icon});
   @override
   Widget build(BuildContext context) => Row(children: [
-    Icon(icon, size: 16, color: AppColors.textMedium),
-    const SizedBox(width: 6),
-    Text(label, style: GoogleFonts.poppins(
-        fontSize: 13, fontWeight: FontWeight.w600,
-        color: AppColors.textMedium, letterSpacing: 0.4)),
-  ]);
+        Icon(icon, size: 16, color: AppColors.textMedium),
+        const SizedBox(width: 6),
+        Text(label,
+            style: GoogleFonts.poppins(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: AppColors.textMedium,
+                letterSpacing: 0.4)),
+      ]);
 }

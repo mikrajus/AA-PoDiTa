@@ -48,7 +48,9 @@ class _GradientButtonState extends State<GradientButton>
   Widget build(BuildContext context) {
     final bool disabled = widget.onPressed == null;
     return GestureDetector(
-      onTapDown: (_) { if (!disabled) _ctrl.forward(); },
+      onTapDown: (_) {
+        if (!disabled) _ctrl.forward();
+      },
       onTapUp: (_) {
         _ctrl.reverse();
         if (!widget.isLoading) widget.onPressed?.call();
@@ -63,19 +65,18 @@ class _GradientButtonState extends State<GradientButton>
           height: 52,
           decoration: BoxDecoration(
             gradient: disabled
-                ? LinearGradient(colors: [
-                    Colors.grey.shade200,
-                    Colors.grey.shade300
-                  ])
+                ? LinearGradient(
+                    colors: [Colors.grey.shade200, Colors.grey.shade300])
                 : widget.gradient,
             borderRadius: BorderRadius.circular(14),
           ),
           child: Center(
             child: widget.isLoading
                 ? SizedBox(
-                    width: 22, height: 22,
+                    width: 22,
+                    height: 22,
                     child: CircularProgressIndicator(
-                      color: widget.textColor, strokeWidth: 2.5),
+                        color: widget.textColor, strokeWidth: 2.5),
                   )
                 : Row(
                     mainAxisSize: MainAxisSize.min,

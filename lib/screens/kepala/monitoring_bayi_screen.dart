@@ -18,11 +18,18 @@ class _MonitoringBayiScreenState extends State<MonitoringBayiScreen> {
   String _search = '';
   String _filter = 'Semua';
   final List<String> _filters = [
-    'Semua', 'Normal', 'Risiko Stunting', 'Stunting', 'Stunting Berat'
+    'Semua',
+    'Normal',
+    'Tinggi',
+    'Pendek (Risiko Stunting)',
+    'Sangat Pendek (Stunting)'
   ];
 
   @override
-  void dispose() { _searchCtrl.dispose(); super.dispose(); }
+  void dispose() {
+    _searchCtrl.dispose();
+    super.dispose();
+  }
 
   List<BayiModel> get _filtered {
     final data = BayiService().dataBayi;
@@ -37,9 +44,9 @@ class _MonitoringBayiScreenState extends State<MonitoringBayiScreen> {
   }
 
   Color _statusColor(String status) {
-    if (status.toLowerCase().contains('berat')) return const Color(0xFFE53935);
-    if (status.toLowerCase() == 'stunting') return const Color(0xFFE57373);
-    if (status.toLowerCase().contains('risiko')) return Colors.orange;
+    final s = status.toLowerCase();
+    if (s.contains('sangat pendek')) return const Color(0xFFE53935);
+    if (s.contains('pendek')) return Colors.orange;
     return AppColors.success;
   }
 
@@ -67,180 +74,238 @@ class _MonitoringBayiScreenState extends State<MonitoringBayiScreen> {
             ),
           ),
           const SizedBox(width: 12),
-          Column(crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min, children: [
-            Text('Monitoring Bayi', style: GoogleFonts.poppins(
-                fontSize: 16, fontWeight: FontWeight.w700,
-                color: AppColors.blueDark)),
-            Text('${BayiService().totalBayi} bayi terdaftar',
-                style: GoogleFonts.poppins(
-                    fontSize: 12, color: AppColors.blueDark.withOpacity(0.7))),
-          ]),
+          Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text('Monitoring Bayi',
+                    style: GoogleFonts.poppins(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.blueDark)),
+                Text('${BayiService().totalBayi} bayi terdaftar',
+                    style: GoogleFonts.poppins(
+                        fontSize: 12,
+                        color: AppColors.blueDark.withOpacity(0.7))),
+              ]),
         ]),
       ),
-      body: Column(children: [
-        Container(
-          color: AppColors.white,
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
-          child: Column(children: [
+      body: AnimatedBuilder(
+        animation: BayiService(),
+        builder: (context, _) {
+          final list = _filtered; // re-evaluate _filtered on rebuild
+          return Column(children: [
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14),
-              decoration: BoxDecoration(
-                color: AppColors.background,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: AppColors.cardBorder),
-              ),
-              child: Row(children: [
-                const Icon(Icons.search_rounded,
-                    color: AppColors.textLight, size: 20),
-                const SizedBox(width: 8),
-                Expanded(child: TextField(
-                  controller: _searchCtrl,
-                  style: GoogleFonts.poppins(fontSize: 14),
-                  decoration: InputDecoration(
-                    hintText: 'Cari nama bayi atau ibu...',
-                    hintStyle: GoogleFonts.poppins(
-                        fontSize: 14, color: AppColors.textLight),
-                    border: InputBorder.none,
-                    enabledBorder: InputBorder.none,
-                    focusedBorder: InputBorder.none,
-                    filled: false,
-                    contentPadding: const EdgeInsets.symmetric(vertical: 12),
+              color: AppColors.white,
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+              child: Column(children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 14),
+                  decoration: BoxDecoration(
+                    color: AppColors.background,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: AppColors.cardBorder),
                   ),
-                  onChanged: (v) => setState(() => _search = v),
-                )),
-                if (_search.isNotEmpty)
-                  GestureDetector(
-                    onTap: () {
-                      _searchCtrl.clear();
-                      setState(() => _search = '');
-                    },
-                    child: const Icon(Icons.close_rounded,
-                        color: AppColors.textLight, size: 18),
-                  ),
-              ]),
-            ),
-            const SizedBox(height: 10),
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(children: _filters.map((f) {
-                final active = _filter == f;
-                return GestureDetector(
-                  onTap: () => setState(() => _filter = f),
-                  child: Container(
-                    margin: const EdgeInsets.only(right: 8),
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 14, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: active ? AppColors.blueDark : AppColors.background,
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                          color: active
-                              ? AppColors.blueDark : AppColors.cardBorder),
-                    ),
-                    child: Text(f, style: GoogleFonts.poppins(
-                        fontSize: 12,
-                        fontWeight: active ? FontWeight.w600 : FontWeight.w400,
-                        color: active ? Colors.white : AppColors.textMedium)),
-                  ),
-                );
-              }).toList()),
-            ),
-          ]),
-        ),
-        Expanded(
-          child: list.isEmpty
-              ? Center(child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center, children: [
-                  const Icon(Icons.search_off_rounded,
-                      size: 48, color: AppColors.textLight),
-                  const SizedBox(height: 12),
-                  Text(
-                    BayiService().totalBayi == 0
-                        ? 'Belum ada data bayi'
-                        : 'Tidak ditemukan',
-                    style: GoogleFonts.poppins(
-                        fontSize: 15, fontWeight: FontWeight.w600,
-                        color: AppColors.textDark)),
-                ]))
-              : ListView.builder(
-                  padding: const EdgeInsets.all(16),
-                  itemCount: list.length,
-                  itemBuilder: (_, i) {
-                    final bayi = list[i];
-                    final isLaki =
-                        bayi.jenisKelamin.toLowerCase().contains('laki');
+                  child: Row(children: [
+                    const Icon(Icons.search_rounded,
+                        color: AppColors.textLight, size: 20),
+                    const SizedBox(width: 8),
+                    Expanded(
+                        child: TextField(
+                      controller: _searchCtrl,
+                      style: GoogleFonts.poppins(fontSize: 14),
+                      decoration: InputDecoration(
+                        hintText: 'Cari nama bayi atau ibu...',
+                        hintStyle: GoogleFonts.poppins(
+                            fontSize: 14, color: AppColors.textLight),
+                        border: InputBorder.none,
+                        enabledBorder: InputBorder.none,
+                        focusedBorder: InputBorder.none,
+                        filled: false,
+                        contentPadding:
+                            const EdgeInsets.symmetric(vertical: 12),
+                      ),
+                      onChanged: (v) => setState(() => _search = v),
+                    )),
+                    if (_search.isNotEmpty)
+                      GestureDetector(
+                        onTap: () {
+                          _searchCtrl.clear();
+                          setState(() => _search = '');
+                        },
+                        child: const Icon(Icons.close_rounded,
+                            color: AppColors.textLight, size: 18),
+                      ),
+                  ]),
+                ),
+                const SizedBox(height: 10),
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                      children: _filters.map((f) {
+                    final active = _filter == f;
                     return GestureDetector(
-                      onTap: () => Navigator.push(context,
-                          MaterialPageRoute(builder: (_) =>
-                              DetailBayiKepalaScreen(bayi: bayi))),
+                      onTap: () => setState(() => _filter = f),
                       child: Container(
-                        margin: const EdgeInsets.only(bottom: 10),
-                        padding: const EdgeInsets.all(14),
+                        margin: const EdgeInsets.only(right: 8),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 14, vertical: 6),
                         decoration: BoxDecoration(
-                          color: AppColors.white,
-                          borderRadius: BorderRadius.circular(14),
-                          border: Border.all(color: AppColors.cardBorder),
-                          boxShadow: [BoxShadow(
-                              color: Colors.black.withOpacity(0.03),
-                              blurRadius: 8, offset: const Offset(0, 3))],
+                          color: active
+                              ? AppColors.blueDark
+                              : AppColors.background,
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                              color: active
+                                  ? AppColors.blueDark
+                                  : AppColors.cardBorder),
                         ),
-                        child: Row(children: [
-                          Container(
-                            width: 46, height: 46,
-                            decoration: BoxDecoration(
-                              color: isLaki ? AppColors.blue : AppColors.pink,
-                              borderRadius: BorderRadius.circular(13),
-                            ),
-                            child: Icon(
-                              isLaki ? Icons.boy_rounded : Icons.girl_rounded,
-                              color: isLaki
-                                  ? AppColors.blueDark : AppColors.pinkDark,
-                              size: 26,
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                            Text(bayi.namaBayi, style: GoogleFonts.poppins(
-                                fontSize: 13, fontWeight: FontWeight.w700,
-                                color: AppColors.textDark)),
-                            const SizedBox(height: 2),
-                            Text('Ibu: ${bayi.namaIbu}',
-                                style: GoogleFonts.poppins(
-                                    fontSize: 11, color: AppColors.textMedium)),
-                            Text('${bayi.umurBulan} bulan · BB ${bayi.beratBadan} kg · TB ${bayi.tinggiBadan} cm',
-                                style: GoogleFonts.poppins(
-                                    fontSize: 11, color: AppColors.textMedium)),
-                          ])),
-                          Column(
-                              crossAxisAlignment: CrossAxisAlignment.end,
-                              children: [
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 8, vertical: 3),
-                              decoration: BoxDecoration(
-                                color: _statusColor(bayi.statusStunting)
-                                    .withOpacity(0.1),
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              child: Text(bayi.statusStunting,
-                                  style: GoogleFonts.poppins(
-                                      fontSize: 10, fontWeight: FontWeight.w600,
-                                      color: _statusColor(bayi.statusStunting))),
-                            ),
-                            const SizedBox(height: 4),
-                            const Icon(Icons.arrow_forward_ios_rounded,
-                                size: 12, color: AppColors.textLight),
-                          ]),
-                        ]),
+                        child: Text(f,
+                            style: GoogleFonts.poppins(
+                                fontSize: 12,
+                                fontWeight:
+                                    active ? FontWeight.w600 : FontWeight.w400,
+                                color: active
+                                    ? Colors.white
+                                    : AppColors.textMedium)),
                       ),
                     );
-                  },
+                  }).toList()),
                 ),
-        ),
-      ]),
+              ]),
+            ),
+            Expanded(
+              child: RefreshIndicator(
+                onRefresh: () => BayiService().refreshData(),
+                color: AppColors.blueDark,
+                child: list.isEmpty
+                    ? Stack(
+                        children: [
+                          ListView(), // Needed for RefreshIndicator to work on empty state
+                          Center(
+                              child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                const Icon(Icons.search_off_rounded,
+                                    size: 48, color: AppColors.textLight),
+                                const SizedBox(height: 12),
+                                Text(
+                                    BayiService().totalBayi == 0
+                                        ? 'Belum ada data bayi'
+                                        : 'Tidak ditemukan',
+                                    style: GoogleFonts.poppins(
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.w600,
+                                        color: AppColors.textDark)),
+                              ])),
+                        ],
+                      )
+                    : ListView.builder(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        padding: const EdgeInsets.all(16),
+                        itemCount: list.length,
+                        itemBuilder: (_, i) {
+                          final bayi = list[i];
+                          final isLaki =
+                              bayi.jenisKelamin.toLowerCase().contains('laki');
+                          return GestureDetector(
+                            onTap: () => Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (_) =>
+                                        DetailBayiKepalaScreen(bayi: bayi))),
+                            child: Container(
+                              margin: const EdgeInsets.only(bottom: 10),
+                              padding: const EdgeInsets.all(14),
+                              decoration: BoxDecoration(
+                                color: AppColors.white,
+                                borderRadius: BorderRadius.circular(14),
+                                border: Border.all(color: AppColors.cardBorder),
+                                boxShadow: [
+                                  BoxShadow(
+                                      color: Colors.black.withOpacity(0.03),
+                                      blurRadius: 8,
+                                      offset: const Offset(0, 3))
+                                ],
+                              ),
+                              child: Row(children: [
+                                Container(
+                                  width: 46,
+                                  height: 46,
+                                  decoration: BoxDecoration(
+                                    color: isLaki
+                                        ? AppColors.blue
+                                        : AppColors.pink,
+                                    borderRadius: BorderRadius.circular(13),
+                                  ),
+                                  child: Icon(
+                                    isLaki
+                                        ? Icons.boy_rounded
+                                        : Icons.girl_rounded,
+                                    color: isLaki
+                                        ? AppColors.blueDark
+                                        : AppColors.pinkDark,
+                                    size: 26,
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                    child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                      Text(bayi.namaBayi,
+                                          style: GoogleFonts.poppins(
+                                              fontSize: 13,
+                                              fontWeight: FontWeight.w700,
+                                              color: AppColors.textDark)),
+                                      const SizedBox(height: 2),
+                                      Text('Ibu: ${bayi.namaIbu}',
+                                          style: GoogleFonts.poppins(
+                                              fontSize: 11,
+                                              color: AppColors.textMedium)),
+                                      Text(
+                                          '${bayi.umurBulan} bulan · BB ${bayi.beratBadan} kg · TB ${bayi.tinggiBadan} cm',
+                                          style: GoogleFonts.poppins(
+                                              fontSize: 11,
+                                              color: AppColors.textMedium)),
+                                    ])),
+                                Column(
+                                    crossAxisAlignment: CrossAxisAlignment.end,
+                                    children: [
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 8, vertical: 3),
+                                        decoration: BoxDecoration(
+                                          color:
+                                              _statusColor(bayi.statusStunting)
+                                                  .withOpacity(0.1),
+                                          borderRadius:
+                                              BorderRadius.circular(10),
+                                        ),
+                                        child: Text(bayi.statusStunting,
+                                            style: GoogleFonts.poppins(
+                                                fontSize: 10,
+                                                fontWeight: FontWeight.w600,
+                                                color: _statusColor(
+                                                    bayi.statusStunting))),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      const Icon(
+                                          Icons.arrow_forward_ios_rounded,
+                                          size: 12,
+                                          color: AppColors.textLight),
+                                    ]),
+                              ]),
+                            ),
+                          );
+                        },
+                      ),
+              ),
+            ),
+          ]);
+        },
+      ),
     );
   }
 }
