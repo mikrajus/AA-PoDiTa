@@ -29,13 +29,13 @@ This application replaces the manual tracking system with a robust digital platf
 - **Responsive UI/UX:** Built with a modern, glassmorphism-inspired design to ensure a smooth and premium user experience.
 
 ## 📸 Screenshots
-
-<img width="540" height="2400" alt="Screenshot_20260608_220238" src="https://github.com/user-attachments/assets/d12e4ec9-0c46-458c-9169-ed4f6382d675" />
-<img width="540" height="2400" alt="Screenshot_20260608_220333" src="https://github.com/user-attachments/assets/02a7340d-f93f-4ede-9943-4ba53af39339" />
-<img width="540" height="1200" alt="image" src="https://github.com/user-attachments/assets/1f973bbc-5013-4f6e-af7f-af791f70492a" />
-<img width="540" height="2400" alt="Screenshot_20260608_220844" src="https://github.com/user-attachments/assets/9d5a86f8-1c69-42e8-a472-5f5ff4d53249" />
-<img width="540" height="1200" alt="image" src="https://github.com/user-attachments/assets/741ffe80-fd7d-497a-9f09-1079ce821f1b" />
-
+<div align="center">
+    <img width="540" height="2400" alt="Screenshot_20260608_220238" src="https://github.com/user-attachments/assets/d12e4ec9-0c46-458c-9169-ed4f6382d675" />
+    <img width="540" height="2400" alt="Screenshot_20260608_220333" src="https://github.com/user-attachments/assets/02a7340d-f93f-4ede-9943-4ba53af39339" />
+    <img width="540" height="1200" alt="image" src="https://github.com/user-attachments/assets/1f973bbc-5013-4f6e-af7f-af791f70492a" />
+    <img width="540" height="2400" alt="Screenshot_20260608_220844" src="https://github.com/user-attachments/assets/9d5a86f8-1c69-42e8-a472-5f5ff4d53249" />
+    <img width="540" height="1200" alt="image" src="https://github.com/user-attachments/assets/741ffe80-fd7d-497a-9f09-1079ce821f1b" />
+</div>
 
 ## 🛠️ Tech Stack
 
