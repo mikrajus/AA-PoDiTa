@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../utils/app_theme.dart';
 import '../../models/bayi_model.dart';
 import '../../services/bayi_service.dart';
+import 'package:fl_chart/fl_chart.dart';
 import 'update_pemeriksaan_screen.dart';
 import 'tambah_bayi_screen.dart';
 
@@ -25,11 +26,8 @@ class _DetailBayiScreenState extends State<DetailBayiScreen> {
 
   Color _statusColor(String status) {
     final s = status.toLowerCase();
-    if (s.contains('sangat pendek')) return const Color(0xFFE53935);
-    if (s.contains('sangat kurang')) return const Color(0xFFE53935);
-    if (s.contains('kurang')) return Colors.orange;
-    if (s.contains('pendek')) return Colors.orange;
-    if (s.contains('lebih')) return Colors.orange;
+    if (s.contains('sangat pendek') || s.contains('sangat kurang')) return const Color(0xFFE53935);
+    if (s.contains('pendek') || s.contains('kurang') || s.contains('risiko')) return Colors.orange;
     return AppColors.success;
   }
 
@@ -437,69 +435,173 @@ class _DetailBayiScreenState extends State<DetailBayiScreen> {
         else ...[
           // Grafik KMS
           SizedBox(
-            height: 200, // Diperbesar untuk menampilkan grafik KMS lebih baik
-            child: CustomPaint(
-              size: const Size(double.infinity, 200),
-              painter: _StatusGrafikPainter(
-                data: data,
-                isBBU: isBBU,
-                isMale: _bayi.jenisKelamin.toLowerCase().contains('laki'),
-                lineColor: color,
-              ),
-            ),
+            height: 250, // Diperbesar untuk menampilkan grafik KMS lebih baik
+            child: _buildFlChart(data, isBBU, _bayi.jenisKelamin.toLowerCase().contains('laki'), color),
           ),
-          const SizedBox(height: 14),
+          const SizedBox(height: 16),
 
           // Legend untuk KMS
           Wrap(
             spacing: 12,
-            runSpacing: 6,
+            runSpacing: 8,
             children: [
               _legendItem('+3/-3 SD', Colors.black45),
               _legendItem('+2/-2 SD', Colors.red.withValues(alpha: 0.6)),
               _legendItem('0 SD (Median)', Colors.green.withValues(alpha: 0.8)),
-              _legendItem('Bayi', color),
+              _legendItem('Pertumbuhan Bayi', color),
             ],
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 16),
 
           // Status terkini
           Container(
-            padding: const EdgeInsets.all(10),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
             decoration: BoxDecoration(
-              color: _statusColor(isBBU
-                      ? data.last['statusGizi']
-                      : data.last['statusStunting'])
-                  .withOpacity(0.08),
-              borderRadius: BorderRadius.circular(10),
+              color: AppColors.white,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: AppColors.cardBorder),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.pinkDark.withValues(alpha: 0.05),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                )
+              ],
             ),
             child: Row(children: [
               Container(
-                width: 8,
-                height: 8,
+                padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: _statusColor(isBBU
-                      ? data.last['statusGizi']
-                      : data.last['statusStunting']),
+                  color: _statusColor(isBBU ? data.last['statusGizi'] : data.last['statusStunting']).withValues(alpha: 0.15),
                   shape: BoxShape.circle,
                 ),
+                child: Icon(Icons.info_outline_rounded, size: 18, color: _statusColor(isBBU ? data.last['statusGizi'] : data.last['statusStunting'])),
               ),
-              const SizedBox(width: 8),
-              Text('Terkini: ',
-                  style: GoogleFonts.poppins(
-                      fontSize: 12, color: AppColors.textMedium)),
-              Text(
-                  isBBU ? data.last['statusGizi'] : data.last['statusStunting'],
-                  style: GoogleFonts.poppins(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w700,
-                      color: _statusColor(isBBU
-                          ? data.last['statusGizi']
-                          : data.last['statusStunting']))),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Status Terkini', style: GoogleFonts.poppins(fontSize: 11, color: AppColors.textLight)),
+                    Text(
+                      isBBU ? data.last['statusGizi'] : data.last['statusStunting'],
+                      style: GoogleFonts.poppins(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                        color: _statusColor(isBBU ? data.last['statusGizi'] : data.last['statusStunting']),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ]),
           ),
         ],
       ]),
+    );
+  }
+
+  Widget _buildFlChart(List<Map<String, dynamic>> data, bool isBBU, bool isMale, Color lineColor) {
+    int maxUmur = 24;
+    for (var d in data) {
+      if ((d['umurBulan'] as int) > maxUmur) maxUmur = d['umurBulan'] as int;
+    }
+    maxUmur = ((maxUmur + 5) ~/ 6) * 6;
+    if (maxUmur < 24) maxUmur = 24;
+
+    double maxY = isBBU ? 20.0 : 110.0;
+    double minY = isBBU ? 2.0 : 40.0;
+
+    final lastCurve = BayiService().getZScoreCurve(maxUmur, isMale, isBBU);
+    if ((lastCurve['3'] ?? 0) > maxY) maxY = (lastCurve['3'] ?? 0) + 2;
+    final firstCurve = BayiService().getZScoreCurve(0, isMale, isBBU);
+    if ((firstCurve['-3'] ?? 0) < minY) {
+      minY = ((firstCurve['-3'] ?? 0) - 2).clamp(0.0, double.infinity);
+    }
+
+    List<FlSpot> spot3 = [];
+    List<FlSpot> spot2 = [];
+    List<FlSpot> spot0 = [];
+    List<FlSpot> spotMin2 = [];
+    List<FlSpot> spotMin3 = [];
+    
+    for (int i = 0; i <= maxUmur; i++) {
+      final curve = BayiService().getZScoreCurve(i, isMale, isBBU);
+      spot3.add(FlSpot(i.toDouble(), curve['3'] ?? 0));
+      spot2.add(FlSpot(i.toDouble(), curve['2'] ?? 0));
+      spot0.add(FlSpot(i.toDouble(), curve['0'] ?? 0));
+      spotMin2.add(FlSpot(i.toDouble(), curve['-2'] ?? 0));
+      spotMin3.add(FlSpot(i.toDouble(), curve['-3'] ?? 0));
+    }
+
+    List<FlSpot> babySpots = [];
+    for (var d in data) {
+      final double umur = (d['umurBulan'] as int).toDouble();
+      final double val = isBBU ? d['beratBadan'] as double : d['tinggiBadan'] as double;
+      babySpots.add(FlSpot(umur, val));
+    }
+
+    return LineChart(
+      LineChartData(
+        minX: 0,
+        maxX: maxUmur.toDouble(),
+        minY: minY,
+        maxY: maxY,
+        gridData: FlGridData(
+          show: true,
+          drawVerticalLine: true,
+          horizontalInterval: isBBU ? 2 : 10,
+          verticalInterval: maxUmur <= 24 ? 3 : 6,
+          getDrawingHorizontalLine: (value) => FlLine(color: AppColors.cardBorder, strokeWidth: 1),
+          getDrawingVerticalLine: (value) => FlLine(color: AppColors.cardBorder, strokeWidth: 1),
+        ),
+        titlesData: FlTitlesData(
+          show: true,
+          rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+          topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+          bottomTitles: AxisTitles(
+            sideTitles: SideTitles(
+              showTitles: true,
+              reservedSize: 22,
+              interval: maxUmur <= 24 ? 3.0 : 6.0,
+              getTitlesWidget: (value, meta) {
+                return Text(value.toInt().toString(), style: GoogleFonts.poppins(fontSize: 10, color: AppColors.textMedium));
+              },
+            ),
+          ),
+          leftTitles: AxisTitles(
+            sideTitles: SideTitles(
+              showTitles: true,
+              interval: isBBU ? 2.0 : 10.0,
+              reservedSize: 28,
+              getTitlesWidget: (value, meta) {
+                return Text(value.toInt().toString(), style: GoogleFonts.poppins(fontSize: 10, color: AppColors.textMedium));
+              },
+            ),
+          ),
+        ),
+        borderData: FlBorderData(show: true, border: Border.all(color: AppColors.cardBorder)),
+        lineBarsData: [
+          LineChartBarData(spots: spot3, isCurved: true, color: Colors.black26, barWidth: 1.5, dotData: const FlDotData(show: false)),
+          LineChartBarData(spots: spot2, isCurved: true, color: Colors.red.withValues(alpha: 0.6), barWidth: 1.5, dotData: const FlDotData(show: false)),
+          LineChartBarData(spots: spot0, isCurved: true, color: Colors.green.withValues(alpha: 0.8), barWidth: 2, dotData: const FlDotData(show: false)),
+          LineChartBarData(spots: spotMin2, isCurved: true, color: Colors.red.withValues(alpha: 0.6), barWidth: 1.5, dotData: const FlDotData(show: false)),
+          LineChartBarData(spots: spotMin3, isCurved: true, color: Colors.black26, barWidth: 1.5, dotData: const FlDotData(show: false)),
+          LineChartBarData(
+            spots: babySpots,
+            isCurved: false,
+            color: lineColor,
+            barWidth: 3,
+            isStrokeCapRound: true,
+            dotData: FlDotData(
+              show: true,
+              getDotPainter: (spot, percent, barData, index) {
+                return FlDotCirclePainter(radius: 4, color: lineColor, strokeWidth: 2, strokeColor: Colors.white);
+              },
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -813,7 +915,11 @@ class _DetailBayiScreenState extends State<DetailBayiScreen> {
           int.parse(partsLahir[2]));
       final pem = DateTime(int.parse(partsPem[0]), int.parse(partsPem[1]),
           int.parse(partsPem[2]));
-      return (pem.year - lahir.year) * 12 + (pem.month - lahir.month);
+      int months = (pem.year - lahir.year) * 12 + (pem.month - lahir.month);
+      if (pem.day < lahir.day) {
+        months--;
+      }
+      return months < 0 ? 0 : months;
     } catch (_) {
       return 0;
     }
@@ -1039,170 +1145,4 @@ class _DetailBayiScreenState extends State<DetailBayiScreen> {
       );
 }
 
-// ── Custom Painter untuk grafik status ──────────────────────────────────────
-class _StatusGrafikPainter extends CustomPainter {
-  final List<Map<String, dynamic>> data;
-  final bool isBBU;
-  final bool isMale;
-  final Color lineColor;
 
-  _StatusGrafikPainter({
-    required this.data,
-    required this.isBBU,
-    required this.isMale,
-    required this.lineColor,
-  });
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    if (data.isEmpty) return;
-
-    // Tentukan nilai maksimum X (umur bulan)
-    int maxUmur = 24;
-    for (var d in data) {
-      if ((d['umurBulan'] as int) > maxUmur) maxUmur = d['umurBulan'] as int;
-    }
-    // Snap ke interval 6 bulan (misal: 24, 30, 36...)
-    maxUmur = ((maxUmur + 5) ~/ 6) * 6;
-    if (maxUmur < 24) maxUmur = 24;
-
-    // Tentukan batas min/max Y (Berat/Tinggi)
-    double maxY = isBBU ? 20.0 : 110.0;
-    double minY = isBBU ? 2.0 : 40.0;
-
-    // Sesuaikan dinamis dengan kurva umur maksimal
-    final lastCurve = BayiService().getZScoreCurve(maxUmur, isMale, isBBU);
-    if ((lastCurve['3'] ?? 0) > maxY) maxY = (lastCurve['3'] ?? 0) + 2;
-    final firstCurve = BayiService().getZScoreCurve(0, isMale, isBBU);
-    if ((firstCurve['-3'] ?? 0) < minY) {
-      minY = ((firstCurve['-3'] ?? 0) - 2).clamp(0.0, double.infinity);
-    }
-
-    // Padding sumbu
-    const double paddingLeft = 30.0;
-    const double paddingBottom = 20.0;
-    const double paddingTop = 10.0;
-    const double paddingRight = 10.0;
-
-    final double w = size.width - paddingLeft - paddingRight;
-    final double h = size.height - paddingBottom - paddingTop;
-
-    double x(int umur) => paddingLeft + (umur / maxUmur) * w;
-    double y(double val) => paddingTop + h - ((val - minY) / (maxY - minY) * h);
-
-    final textPainter = TextPainter(textDirection: TextDirection.ltr);
-    final gridPaint = Paint()
-      ..color = AppColors.cardBorder
-      ..strokeWidth = 1;
-
-    // Sumbu Y Labels & Garis Horizontal (6 ticks)
-    for (int i = 0; i <= 5; i++) {
-      double val = minY + (i / 5) * (maxY - minY);
-      double yPos = y(val);
-      canvas.drawLine(Offset(paddingLeft, yPos),
-          Offset(size.width - paddingRight, yPos), gridPaint);
-
-      textPainter.text = TextSpan(
-        text: val.toStringAsFixed(isBBU ? 1 : 0),
-        style: GoogleFonts.poppins(fontSize: 9, color: AppColors.textMedium),
-      );
-      textPainter.layout();
-      textPainter.paint(
-          canvas,
-          Offset(paddingLeft - textPainter.width - 4,
-              yPos - textPainter.height / 2));
-    }
-
-    // Sumbu X Labels & Garis Vertikal (tiap 3 atau 6 bulan)
-    int xStep = maxUmur <= 24 ? 3 : 6;
-    for (int i = 0; i <= maxUmur; i += xStep) {
-      double xPos = x(i);
-      canvas.drawLine(Offset(xPos, paddingTop),
-          Offset(xPos, size.height - paddingBottom), gridPaint);
-
-      textPainter.text = TextSpan(
-        text: i.toString(),
-        style: GoogleFonts.poppins(fontSize: 9, color: AppColors.textMedium),
-      );
-      textPainter.layout();
-      textPainter.paint(
-          canvas,
-          Offset(
-              xPos - textPainter.width / 2, size.height - paddingBottom + 4));
-    }
-
-    // Fungsi menggambar kurva WHO
-    void drawCurve(String key, Color color, double strokeWidth) {
-      final path = Path();
-      bool first = true;
-      for (int i = 0; i <= maxUmur; i++) {
-        final curveMap = BayiService().getZScoreCurve(i, isMale, isBBU);
-        final val = curveMap[key] ?? 0;
-        if (first) {
-          path.moveTo(x(i), y(val));
-          first = false;
-        } else {
-          path.lineTo(x(i), y(val));
-        }
-      }
-      canvas.drawPath(
-          path,
-          Paint()
-            ..color = color
-            ..strokeWidth = strokeWidth
-            ..style = PaintingStyle.stroke);
-    }
-
-    // Gambar kurva standar deviasi (+3, +2, 0, -2, -3)
-    drawCurve('3', Colors.black45, 1.0);
-    drawCurve('2', Colors.red.withValues(alpha: 0.6), 1.0);
-    drawCurve('0', Colors.green.withValues(alpha: 0.8), 1.5);
-    drawCurve('-2', Colors.red.withValues(alpha: 0.6), 1.0);
-    drawCurve('-3', Colors.black45, 1.0);
-
-    // Garis data pertumbuhan bayi riil
-    final babyPath = Path();
-    bool first = true;
-    for (var d in data) {
-      final int umur = d['umurBulan'] as int;
-      final double val =
-          isBBU ? d['beratBadan'] as double : d['tinggiBadan'] as double;
-      if (first) {
-        babyPath.moveTo(x(umur), y(val));
-        first = false;
-      } else {
-        babyPath.lineTo(x(umur), y(val));
-      }
-    }
-
-    canvas.drawPath(
-        babyPath,
-        Paint()
-          ..color = lineColor
-          ..strokeWidth = 2.5
-          ..style = PaintingStyle.stroke
-          ..strokeJoin = StrokeJoin.round);
-
-    // Titik poin
-    for (var d in data) {
-      final int umur = d['umurBulan'] as int;
-      final double val =
-          isBBU ? d['beratBadan'] as double : d['tinggiBadan'] as double;
-      canvas.drawCircle(
-          Offset(x(umur), y(val)),
-          4,
-          Paint()
-            ..color = Colors.white
-            ..style = PaintingStyle.fill);
-      canvas.drawCircle(
-          Offset(x(umur), y(val)),
-          3,
-          Paint()
-            ..color = lineColor
-            ..style = PaintingStyle.fill);
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
-}

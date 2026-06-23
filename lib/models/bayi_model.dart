@@ -64,8 +64,11 @@ class BayiModel {
         targetDate = DateTime.now();
       }
 
-      return (targetDate.year - lahir.year) * 12 +
-          (targetDate.month - lahir.month);
+      int months = (targetDate.year - lahir.year) * 12 + (targetDate.month - lahir.month);
+      if (targetDate.day < lahir.day) {
+        months--;
+      }
+      return months < 0 ? 0 : months;
     } catch (_) {
       return 0;
     }

@@ -410,31 +410,42 @@ class BayiService extends ChangeNotifier {
   }
 
   // ── Z-Score TB/U ─────────────────────────────────────────────────────────
-  double hitungZScoreTBU(int umurBulan, double tb, String jenisKelamin) {
+  double hitungZScoreTBU(int umurBulan, double tb, String jenisKelamin, {String? caraUkur}) {
+    // Kompensasi TB berdasarkan cara ukur (Permenkes)
+    double nilaiUkur = tb;
+    if (caraUkur != null && caraUkur.isNotEmpty) {
+      if (umurBulan < 24 && caraUkur.toLowerCase() == 'berdiri') {
+        nilaiUkur += 0.7;
+      } else if (umurBulan >= 24 && caraUkur.toLowerCase() == 'telentang') {
+        nilaiUkur -= 0.7;
+      }
+    }
+
     final bool isMale = jenisKelamin.toLowerCase().contains('laki');
     final data = isMale ? _tabelTBULakiLaki : _tabelTBUPerempuan;
     final row = data[umurBulan.clamp(0, data.length - 1)];
     final double median = row[0];
     final double sd1Neg = row[1];
     final double sd1Pos = row[2];
-    return tb < median
-        ? (tb - median) / (median - sd1Neg)
-        : (tb - median) / (sd1Pos - median);
+
+    return nilaiUkur < median
+        ? (nilaiUkur - median) / (median - sd1Neg)
+        : (nilaiUkur - median) / (sd1Pos - median);
   }
 
   // ── Kategori BB/U (PMK No.2 Tahun 2020) ─────────────────────────────────
   String tentukanStatusGiziBBU(double z) {
-    if (z < -3) return 'BB Sangat Kurang';
-    if (z < -2) return 'BB Kurang';
-    if (z <= 1) return 'BB Normal (Risiko Gemuk)';
-    return 'Risiko BB Lebih (Gemuk)';
+    if (z < -3.0) return 'Berat badan sangat kurang (severely underweight)';
+    if (z < -2.0) return 'Berat badan kurang (underweight)';
+    if (z <= 1.0) return 'Berat badan normal';
+    return 'Risiko berat badan lebih';
   }
 
   // ── Kategori TB/U (PMK No.2 Tahun 2020) ─────────────────────────────────
   String tentukanStatusStuntingTBU(double z) {
-    if (z < -3) return 'Sangat Pendek (Stunting)';
-    if (z < -2) return 'Pendek (Risiko Stunting)';
-    if (z <= 3) return 'Normal';
+    if (z < -3.0) return 'Sangat pendek (severely stunted)';
+    if (z < -2.0) return 'Pendek (stunted)';
+    if (z <= 3.0) return 'Normal';
     return 'Tinggi';
   }
 
